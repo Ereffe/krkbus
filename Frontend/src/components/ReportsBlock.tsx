@@ -32,55 +32,57 @@ export function ReportsBlock() {
       <CardHeader className="bg-gradient-to-r from-blue-50 to-transparent">
         <CardTitle className="text-blue-900">Przeglądaj Raporty</CardTitle>
       </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-blue-50 hover:bg-blue-50">
-              <TableHead className="text-blue-900 font-semibold">
-                Tytuł
-              </TableHead>
-              <TableHead className="text-blue-900 font-semibold">
-                Data
-              </TableHead>
-              <TableHead className="text-blue-900 font-semibold">
-                Status
-              </TableHead>
-              <TableHead className="text-blue-900 font-semibold">
-                Akcje
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {reports.map((report) => (
-              <TableRow key={report.id} className="hover:bg-blue-50">
-                <TableCell className="font-semibold text-gray-900">
-                  {report.title}
-                </TableCell>
-                <TableCell>{report.date}</TableCell>
-                <TableCell>
-                  <span
-                    className={`px-2 py-1 rounded text-sm font-medium ${
-                      report.status === "Gotowy"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
-                    {report.status}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                  >
-                    Pobierz
-                  </Button>
-                </TableCell>
+      <CardContent className="w-full">
+        <div className="w-full overflow-x-auto">
+          <Table className="w-full">
+            <TableHeader>
+              <TableRow className="bg-blue-50 hover:bg-blue-50">
+                <TableHead className="text-blue-900 font-semibold">
+                  Tytuł
+                </TableHead>
+                <TableHead className="text-blue-900 font-semibold">
+                  Data
+                </TableHead>
+                <TableHead className="text-blue-900 font-semibold">
+                  Status
+                </TableHead>
+                <TableHead className="text-blue-900 font-semibold">
+                  Akcje
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {reports.map((report) => (
+                <TableRow key={report.id} className="hover:bg-blue-50">
+                  <TableCell className="font-semibold text-gray-900">
+                    {report.title}
+                  </TableCell>
+                  <TableCell>{report.date}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`px-2 py-1 rounded text-sm font-medium ${
+                        report.status === "Gotowy"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {report.status}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                    >
+                      Pobierz
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );

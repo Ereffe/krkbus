@@ -56,7 +56,7 @@ export function ReservationsBlock() {
           Przeglądaj Rezerwacje Miejsc
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="w-full">
         <div className="mb-6 flex flex-wrap gap-2">
           <Button
             variant={selectedRoute === "" ? "default" : "outline"}
@@ -84,50 +84,52 @@ export function ReservationsBlock() {
             </Button>
           ))}
         </div>
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-blue-50 hover:bg-blue-50">
-              <TableHead className="text-blue-900 font-semibold">
-                Pasażer
-              </TableHead>
-              <TableHead className="text-blue-900 font-semibold">
-                Miejsce
-              </TableHead>
-              <TableHead className="text-blue-900 font-semibold">
-                Trasa
-              </TableHead>
-              <TableHead className="text-blue-900 font-semibold">
-                Data
-              </TableHead>
-              <TableHead className="text-blue-900 font-semibold">
-                Akcje
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredReservations.map((reservation) => (
-              <TableRow key={reservation.id} className="hover:bg-blue-50">
-                <TableCell>{reservation.passenger}</TableCell>
-                <TableCell className="font-semibold text-blue-600">
-                  {reservation.seat}
-                </TableCell>
-                <TableCell>
-                  {routes.find((r) => r.id === reservation.route)?.name}
-                </TableCell>
-                <TableCell>{reservation.date}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                  >
-                    Szczegóły
-                  </Button>
-                </TableCell>
+        <div className="w-full overflow-x-auto">
+          <Table className="w-full">
+            <TableHeader>
+              <TableRow className="bg-blue-50 hover:bg-blue-50">
+                <TableHead className="text-blue-900 font-semibold">
+                  Pasażer
+                </TableHead>
+                <TableHead className="text-blue-900 font-semibold">
+                  Miejsce
+                </TableHead>
+                <TableHead className="text-blue-900 font-semibold">
+                  Trasa
+                </TableHead>
+                <TableHead className="text-blue-900 font-semibold">
+                  Data
+                </TableHead>
+                <TableHead className="text-blue-900 font-semibold">
+                  Akcje
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredReservations.map((reservation) => (
+                <TableRow key={reservation.id} className="hover:bg-blue-50">
+                  <TableCell>{reservation.passenger}</TableCell>
+                  <TableCell className="font-semibold text-blue-600">
+                    {reservation.seat}
+                  </TableCell>
+                  <TableCell>
+                    {routes.find((r) => r.id === reservation.route)?.name}
+                  </TableCell>
+                  <TableCell>{reservation.date}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                    >
+                      Szczegóły
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );

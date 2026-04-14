@@ -26,8 +26,8 @@ export function DriverScheduleBlock() {
       <CardHeader className="bg-gradient-to-r from-blue-50 to-transparent">
         <CardTitle className="text-blue-900">Ustal Grafik Kierowców</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      <CardContent className="w-full">
+        <div className="space-y-4 w-full">
           <div>
             <Calendar
               mode="single"
@@ -36,8 +36,8 @@ export function DriverScheduleBlock() {
               className="rounded-md border"
             />
           </div>
-          <div className="flex-1">
-            <Table>
+          <div className="w-full overflow-x-auto">
+            <Table className="w-full">
               <TableHeader>
                 <TableRow className="bg-blue-50 hover:bg-blue-50">
                   <TableHead className="text-blue-900 font-semibold">
