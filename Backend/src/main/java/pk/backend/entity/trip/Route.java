@@ -20,6 +20,14 @@ public class Route {
     @OneToMany(mappedBy = "route")
     private Set<Trip> trips;
 
-    @OneToMany(mappedBy = "route")
+    @OneToMany(cascade = {
+            CascadeType.PERSIST,
+            CascadeType.MERGE
+    })
+    @JoinTable(
+            name = "route_trip",
+            joinColumns = @JoinColumn(name = "route_id"),
+            inverseJoinColumns = @JoinColumn(name = "stop_id")
+    )
     private Set<Stop> stops;
 }

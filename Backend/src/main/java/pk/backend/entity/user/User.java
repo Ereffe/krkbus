@@ -21,8 +21,10 @@ public abstract class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer userID;
     
-    @Embedded
+    @OneToOne
+    @JoinColumn(name = "profile_id")
     private UserProfile profile;
+
     private String login;
     private String password;
     private String role;
