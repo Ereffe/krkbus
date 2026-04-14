@@ -1,0 +1,7 @@
+#
+.env
+copilot-instructions.md
+
+# IDE files
+.idea/
+.vscode/
