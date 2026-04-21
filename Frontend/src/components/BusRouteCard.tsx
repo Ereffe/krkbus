@@ -1,6 +1,6 @@
-import { BusRoute } from "@/types/bus";
+import type { BusRoute } from "@/types/bus";
 import { Link } from "react-router-dom";
-import { MapPin, Clock, DollarSign, Zap } from "lucide-react";
+import { MapPin, Clock, Zap } from "lucide-react";
 
 interface BusRouteCardProps {
   route: BusRoute;
