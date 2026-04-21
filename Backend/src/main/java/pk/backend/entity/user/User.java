@@ -16,6 +16,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "users")
 public abstract class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
