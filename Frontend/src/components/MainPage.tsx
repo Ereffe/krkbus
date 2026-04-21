@@ -1,10 +1,11 @@
 import { DriverScheduleBlock } from "./DriverScheduleBlock";
 import { ReportsBlock } from "./ReportsBlock";
 import { ReservationsBlock } from "./ReservationsBlock";
+import { Layout } from "./Layout";
 
 export function MainPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+    <Layout>
       {/* Header */}
       <div className="mb-10">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">
@@ -28,6 +29,6 @@ export function MainPage() {
           <ReservationsBlock />
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }

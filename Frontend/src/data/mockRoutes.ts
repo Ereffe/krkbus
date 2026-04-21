@@ -1,0 +1,191 @@
+import type { BusRoute } from "@/types/bus";
+
+export const mockBusRoutes: BusRoute[] = [
+  {
+    id: "1",
+    name: "Trasa Centrum - Nowa Huta",
+    number: "1",
+    description: "Trasa łącząca Centrum miasta z dzielnicą Nowa Huta",
+    startStop: {
+      id: "stop-1",
+      name: "Główny Dworzec",
+      coordinate: { latitude: 50.0467, longitude: 19.9454 },
+    },
+    endStop: {
+      id: "stop-5",
+      name: "Nowa Huta - Pętla",
+      coordinate: { latitude: 50.0189, longitude: 19.9789 },
+    },
+    stops: [
+      {
+        id: "stop-1",
+        name: "Główny Dworzec",
+        coordinate: { latitude: 50.0467, longitude: 19.9454 },
+        arrivalTime: "00:00",
+      },
+      {
+        id: "stop-2",
+        name: "Rynek Główny",
+        coordinate: { latitude: 50.0481, longitude: 19.9350 },
+        arrivalTime: "05:00",
+      },
+      {
+        id: "stop-3",
+        name: "ul. Grodzka",
+        coordinate: { latitude: 50.0518, longitude: 19.9296 },
+        arrivalTime: "10:00",
+      },
+      {
+        id: "stop-4",
+        name: "Wawel",
+        coordinate: { latitude: 50.0510, longitude: 19.9318 },
+        arrivalTime: "15:00",
+      },
+      {
+        id: "stop-5",
+        name: "Nowa Huta - Pętla",
+        coordinate: { latitude: 50.0189, longitude: 19.9789 },
+        arrivalTime: "25:00",
+      },
+    ],
+    schedule: [
+      { departure: "06:00", arrival: "06:25", daysOfWeek: [1, 2, 3, 4, 5] },
+      { departure: "06:30", arrival: "06:55", daysOfWeek: [1, 2, 3, 4, 5] },
+      { departure: "07:00", arrival: "07:25", daysOfWeek: [1, 2, 3, 4, 5] },
+      { departure: "12:00", arrival: "12:25", daysOfWeek: [0, 1, 2, 3, 4, 5, 6] },
+      { departure: "18:00", arrival: "18:25", daysOfWeek: [1, 2, 3, 4, 5] },
+    ],
+    pricing: {
+      studentTicket: 2.0,
+      normalTicket: 3.5,
+      seniorTicket: 1.75,
+      dayPass: 15.0,
+    },
+    frequency: "Co 15 minut (dni robocze), co 30 minut (weekendy)",
+    distance: 8.5,
+  },
+  {
+    id: "2",
+    name: "Trasa Airport Express",
+    number: "208",
+    description: "Bezpośrednia trasa do lotniska Kraków-Balice",
+    startStop: {
+      id: "stop-a1",
+      name: "Plac Nowy",
+      coordinate: { latitude: 50.0433, longitude: 19.9353 },
+    },
+    endStop: {
+      id: "stop-a5",
+      name: "Lotnisko Balice",
+      coordinate: { latitude: 50.0792, longitude: 19.7812 },
+    },
+    stops: [
+      {
+        id: "stop-a1",
+        name: "Plac Nowy",
+        coordinate: { latitude: 50.0433, longitude: 19.9353 },
+        arrivalTime: "00:00",
+      },
+      {
+        id: "stop-a2",
+        name: "Główny Dworzec",
+        coordinate: { latitude: 50.0467, longitude: 19.9454 },
+        arrivalTime: "05:00",
+      },
+      {
+        id: "stop-a3",
+        name: "Małopolska",
+        coordinate: { latitude: 50.0612, longitude: 19.9234 },
+        arrivalTime: "15:00",
+      },
+      {
+        id: "stop-a4",
+        name: "Mogilany",
+        coordinate: { latitude: 50.0756, longitude: 19.8534 },
+        arrivalTime: "30:00",
+      },
+      {
+        id: "stop-a5",
+        name: "Lotnisko Balice",
+        coordinate: { latitude: 50.0792, longitude: 19.7812 },
+        arrivalTime: "40:00",
+      },
+    ],
+    schedule: [
+      { departure: "05:00", arrival: "05:40", daysOfWeek: [0, 1, 2, 3, 4, 5, 6] },
+      { departure: "05:30", arrival: "06:10", daysOfWeek: [0, 1, 2, 3, 4, 5, 6] },
+      { departure: "06:00", arrival: "06:40", daysOfWeek: [0, 1, 2, 3, 4, 5, 6] },
+      { departure: "09:00", arrival: "09:40", daysOfWeek: [0, 1, 2, 3, 4, 5, 6] },
+    ],
+    pricing: {
+      studentTicket: 9.0,
+      normalTicket: 15.0,
+      seniorTicket: 7.5,
+      dayPass: 50.0,
+    },
+    frequency: "Co 30 minut",
+    distance: 18.0,
+  },
+  {
+    id: "3",
+    name: "Trasa Kazimierz - Podgórze",
+    number: "3",
+    description: "Trasa historyczna łącząca dwie dzielnice Krakowa",
+    startStop: {
+      id: "stop-k1",
+      name: "Ul. Szeroka",
+      coordinate: { latitude: 50.0384, longitude: 19.9281 },
+    },
+    endStop: {
+      id: "stop-k5",
+      name: "Podgórze - Pętla",
+      coordinate: { latitude: 50.0281, longitude: 19.9612 },
+    },
+    stops: [
+      {
+        id: "stop-k1",
+        name: "Ul. Szeroka",
+        coordinate: { latitude: 50.0384, longitude: 19.9281 },
+        arrivalTime: "00:00",
+      },
+      {
+        id: "stop-k2",
+        name: "Kazimierz - Rynek",
+        coordinate: { latitude: 50.0395, longitude: 19.9387 },
+        arrivalTime: "08:00",
+      },
+      {
+        id: "stop-k3",
+        name: "Most Bernatek",
+        coordinate: { latitude: 50.0378, longitude: 19.9401 },
+        arrivalTime: "12:00",
+      },
+      {
+        id: "stop-k4",
+        name: "Rynek Podgórski",
+        coordinate: { latitude: 50.0308, longitude: 19.9468 },
+        arrivalTime: "18:00",
+      },
+      {
+        id: "stop-k5",
+        name: "Podgórze - Pętla",
+        coordinate: { latitude: 50.0281, longitude: 19.9612 },
+        arrivalTime: "25:00",
+      },
+    ],
+    schedule: [
+      { departure: "07:00", arrival: "07:25", daysOfWeek: [1, 2, 3, 4, 5] },
+      { departure: "10:00", arrival: "10:25", daysOfWeek: [0, 1, 2, 3, 4, 5, 6] },
+      { departure: "15:00", arrival: "15:25", daysOfWeek: [0, 1, 2, 3, 4, 5, 6] },
+      { departure: "19:00", arrival: "19:25", daysOfWeek: [1, 2, 3, 4, 5] },
+    ],
+    pricing: {
+      studentTicket: 2.0,
+      normalTicket: 3.5,
+      seniorTicket: 1.75,
+      dayPass: 15.0,
+    },
+    frequency: "Co 20 minut",
+    distance: 6.2,
+  },
+];
