@@ -1,28 +1,24 @@
 import "./App.css";
-import { Button } from "./components/ui/button";
-import {
-  Card,
-  CardAction,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "./components/ui/card";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { MainPage } from "@/components/MainPage";
+import { Dashboard } from "@/views/Dashboard";
+import { RouteDetail } from "@/views/RouteDetail";
+import { Points } from "@/views/Points";
 
 function App() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
-          <CardAction>
-            <Button variant="link">Sign Up</Button>
-          </CardAction>
-        </CardHeader>
-      </Card>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/route/:id" element={<RouteDetail />} />
+        <Route path="/points" element={<Points />} />
+        
+        {/* Admin Routes */}
+        <Route path="/admin" element={<MainPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
+
 export default App;
