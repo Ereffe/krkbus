@@ -90,8 +90,8 @@ export function AccountManagementBlock() {
           Zarządzaj Kontami
         </CardTitle>
       </CardHeader>
-      <CardContent className="w-full p-4 md:p-6">
-        <div className="space-y-4">
+      <CardContent className="w-full p-4 md:p-6 flex flex-col min-h-0">
+        <div className="space-y-4 flex-1 overflow-y-auto">
           <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
             <Table className="w-full text-sm md:text-base">
               <TableHeader>

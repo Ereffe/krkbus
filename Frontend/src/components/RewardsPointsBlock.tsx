@@ -90,8 +90,8 @@ export function RewardsPointsBlock() {
           Ustalaj Nagrody & Punkty
         </CardTitle>
       </CardHeader>
-      <CardContent className="w-full p-4 md:p-6">
-        <div className="space-y-4 md:space-y-6">
+      <CardContent className="w-full p-4 md:p-6 flex flex-col min-h-0">
+        <div className="space-y-4 md:space-y-6 flex-1 overflow-y-auto">
           {/* Employees Points */}
           <div>
             <h3 className="text-sm md:text-base font-semibold text-yellow-900 mb-3">

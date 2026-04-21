@@ -18,16 +18,18 @@ export function OwnerDashboard() {
         </div>
 
         {/* Bloki Dashboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-          {/* Lewa kolumna - Grafik sekretariatu i Zarządzanie kontami */}
-          <div className="lg:col-span-1 space-y-4 md:space-y-6">
+        <div className="flex flex-wrap gap-4 md:gap-6 justify-stretch">
+          {/* Każdy blok zajmuje równą część miejsca */}
+          <div className="flex-1 min-w-[min(100%, 350px)]">
             <SecretaryScheduleBlock />
+          </div>
+          <div className="flex-1 min-w-[min(100%, 350px)]">
+            <RoutesAndPricesBlock />
+          </div>
+          <div className="flex-1 min-w-[min(100%, 350px)]">
             <AccountManagementBlock />
           </div>
-
-          {/* Prawa kolumna - Trasy i ceny + Nagrody */}
-          <div className="lg:col-span-2 space-y-4 md:space-y-6">
-            <RoutesAndPricesBlock />
+          <div className="flex-1 min-w-[min(100%, 350px)]">
             <RewardsPointsBlock />
           </div>
         </div>
