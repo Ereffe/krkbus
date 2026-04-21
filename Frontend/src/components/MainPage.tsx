@@ -16,14 +16,14 @@ export function MainPage() {
       </div>
 
       {/* Bloki Dashboard */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Lewa kolumna - Grafik Kierowców */}
-        <div className="lg:col-span-1">
+        <div className="flex-1">
           <DriverScheduleBlock />
         </div>
 
         {/* Środkowa kolumna - Raporty i Rezerwacje */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="flex-1 lg:flex-[2] space-y-6">
           <ReportsBlock />
           <ReservationsBlock />
         </div>

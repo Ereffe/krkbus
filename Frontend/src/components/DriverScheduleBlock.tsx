@@ -22,7 +22,7 @@ export function DriverScheduleBlock() {
   ];
 
   return (
-    <Card className="border-l-4 border-l-blue-500 shadow-lg h-full">
+    <Card className="border-l-4 border-l-blue-500 shadow-lg h-full w-fit ">
       <CardHeader className="bg-gradient-to-r from-blue-50 to-transparent">
         <CardTitle className="text-blue-900">Ustal Grafik Kierowców</CardTitle>
       </CardHeader>
