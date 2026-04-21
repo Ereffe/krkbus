@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Bus } from "lucide-react";
+import { Bus, Zap } from "lucide-react";
 
 export function Header() {
   const location = useLocation();
@@ -26,6 +26,17 @@ export function Header() {
             }`}
           >
             Trasy
+          </Link>
+          <Link
+            to="/points"
+            className={`flex items-center gap-2 text-lg font-medium transition-colors ${
+              isActive("/points")
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-700 hover:text-blue-600"
+            }`}
+          >
+            <Zap className="w-5 h-5" />
+            Punkty
           </Link>
           <Link
             to="/admin"
