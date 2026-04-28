@@ -52,6 +52,16 @@ export function Header() {
           >
             Panel Sekretariatu
           </Link>
+          <Link
+            to="/owner"
+            className={`text-lg font-medium transition-colors ${
+              isActive("/owner")
+                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+            }`}
+          >
+            Panel Właściciela
+          </Link>
         </div>
 
         {/* User Profile and Theme Toggle */}
