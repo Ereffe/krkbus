@@ -18,10 +18,10 @@ export function RouteDetail() {
     return (
       <Layout>
         <div className="text-center py-12">
-          <p className="text-gray-600 text-lg mb-4">Trasa nie znaleziona</p>
+          <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">Trasa nie znaleziona</p>
           <button
             onClick={() => navigate("/")}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+            className="bg-blue-600 dark:bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition"
           >
             Wróć do tras
           </button>
@@ -44,52 +44,52 @@ export function RouteDetail() {
         {/* Back Button */}
         <button
           onClick={() => navigate("/")}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition font-medium"
+          className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition font-medium"
         >
           <ArrowLeft className="w-5 h-5" />
           Wróć do tras
         </button>
 
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-md p-8">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md dark:shadow-slate-900/50 p-8 border dark:border-slate-700">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <div className="inline-block bg-blue-100 text-blue-700 rounded-full px-6 py-2 font-bold text-2xl mb-3">
+              <div className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full px-6 py-2 font-bold text-2xl mb-3">
                 Linia {route.number}
               </div>
-              <h1 className="text-3xl font-bold text-gray-900">{route.name}</h1>
-              <p className="text-gray-600 text-lg mt-2">{route.description}</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{route.name}</h1>
+              <p className="text-gray-600 dark:text-gray-400 text-lg mt-2">{route.description}</p>
             </div>
           </div>
 
           {/* Key Information */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t dark:border-slate-700">
             <div className="flex gap-3">
-              <MapPin className="w-5 h-5 text-blue-600 shrink-0" />
+              <MapPin className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0" />
               <div>
-                <p className="text-xs text-gray-500">Odległość</p>
-                <p className="font-semibold text-gray-900">{route.distance} km</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Odległość</p>
+                <p className="font-semibold text-gray-900 dark:text-white">{route.distance} km</p>
               </div>
             </div>
             <div className="flex gap-3">
-              <Clock className="w-5 h-5 text-green-600 shrink-0" />
+              <Clock className="w-5 h-5 text-green-600 dark:text-green-400 shrink-0" />
               <div>
-                <p className="text-xs text-gray-500">Częstotliwość</p>
-                <p className="font-semibold text-gray-900">{route.frequency}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Częstotliwość</p>
+                <p className="font-semibold text-gray-900 dark:text-white">{route.frequency}</p>
               </div>
             </div>
             <div className="flex gap-3">
-              <Zap className="w-5 h-5 text-yellow-600 shrink-0" />
+              <Zap className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0" />
               <div>
-                <p className="text-xs text-gray-500">Przystanków</p>
-                <p className="font-semibold text-gray-900">{route.stops.length}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Przystanków</p>
+                <p className="font-semibold text-gray-900 dark:text-white">{route.stops.length}</p>
               </div>
             </div>
             <div className="flex gap-3">
-              <Banknote className="w-5 h-5 text-orange-600 shrink-0" />
+              <Banknote className="w-5 h-5 text-orange-600 dark:text-orange-400 shrink-0" />
               <div>
-                <p className="text-xs text-gray-500">Cena</p>
-                <p className="font-semibold text-gray-900">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Cena</p>
+                <p className="font-semibold text-gray-900 dark:text-white">
                   {currentPrice.toFixed(2)} zł
                 </p>
               </div>
@@ -101,24 +101,24 @@ export function RouteDetail() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Map */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md dark:shadow-slate-900/50 p-6 border dark:border-slate-700">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                 Mapa trasy
               </h2>
               <RouteMap route={route} />
             </div>
 
             {/* Stops List */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md dark:shadow-slate-900/50 p-6 border dark:border-slate-700">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                 Lista przystanków
               </h2>
               <div className="space-y-3">
                 {route.stops.map((stop, index) => (
                   <div
                     key={stop.id}
-                    className="flex items-start gap-4 pb-4 border-b last:border-b-0"
-                  >
+                    className="flex items-start gap-4 pb-4 border-b dark:border-slate-700 last:border-b-0">
+                  
                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-sm shrink-0">
                       {index + 1}
                     </div>
@@ -128,7 +128,7 @@ export function RouteDetail() {
                         <p className="text-sm text-gray-500">
                           Przyjazd: {stop.arrivalTime}
                         </p>
-                      )}
+                      )}s
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-gray-500">Współrzędne</p>

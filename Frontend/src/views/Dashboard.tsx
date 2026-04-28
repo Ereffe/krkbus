@@ -19,10 +19,10 @@ export function Dashboard() {
       <div className="space-y-8">
         {/* Header Section */}
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
             Trasy autobusowe Krakowa
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-600 dark:text-gray-400">
             Znajdź i sprawdź harmonogram i ceny Twojej trasę
           </p>
         </div>
@@ -36,7 +36,7 @@ export function Dashboard() {
               placeholder="Szukaj trasy po nazwie, numerze lub opisie..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-lg border-2 border-gray-200 focus:border-blue-600 focus:outline-none transition bg-white"
+              className="w-full pl-12 pr-4 py-3 rounded-lg border-2 border-gray-200 dark:border-slate-600 focus:border-blue-600 dark:focus:border-blue-400 focus:outline-none transition bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             />
           </div>
         </div>
