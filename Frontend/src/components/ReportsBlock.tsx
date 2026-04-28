@@ -28,52 +28,59 @@ export function ReportsBlock() {
   ];
 
   return (
-    <Card className="border-l-4 border-l-blue-500 shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-transparent">
-        <CardTitle className="text-blue-900">Przeglądaj Raporty</CardTitle>
+    <Card className="shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
+      <CardHeader className="border-b dark:border-slate-700 pb-6">
+        <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
+          Przeglądaj Raporty
+        </CardTitle>
       </CardHeader>
-      <CardContent className="w-full">
+      <CardContent className="pt-6">
         <div className="w-full overflow-x-auto">
           <Table className="w-full">
             <TableHeader>
-              <TableRow className="bg-blue-50 hover:bg-blue-50">
-                <TableHead className="text-blue-900 font-semibold">
+              <TableRow className="border-b dark:border-slate-700">
+                <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
                   Tytuł
                 </TableHead>
-                <TableHead className="text-blue-900 font-semibold">
+                <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
                   Data
                 </TableHead>
-                <TableHead className="text-blue-900 font-semibold">
+                <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
                   Status
                 </TableHead>
-                <TableHead className="text-blue-900 font-semibold">
+                <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
                   Akcje
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {reports.map((report) => (
-                <TableRow key={report.id} className="hover:bg-blue-50">
-                  <TableCell className="font-semibold text-gray-900">
+                <TableRow
+                  key={report.id}
+                  className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition"
+                >
+                  <TableCell className="font-semibold text-gray-900 dark:text-white py-4">
                     {report.title}
                   </TableCell>
-                  <TableCell>{report.date}</TableCell>
-                  <TableCell>
+                  <TableCell className="text-gray-600 dark:text-gray-400 py-4">
+                    {report.date}
+                  </TableCell>
+                  <TableCell className="py-4">
                     <span
                       className={`px-2 py-1 rounded text-sm font-medium ${
                         report.status === "Gotowy"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
+                          ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
+                          : "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400"
                       }`}
                     >
                       {report.status}
                     </span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-4">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                      className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
                     >
                       Pobierz
                     </Button>

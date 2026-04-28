@@ -50,77 +50,82 @@ export function ReservationsBlock() {
     : reservations;
 
   return (
-    <Card className="border-l-4 border-l-blue-500 shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-transparent">
-        <CardTitle className="text-blue-900">
+    <Card className="shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
+      <CardHeader className="border-b dark:border-slate-700 pb-6">
+        <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
           Przeglądaj Rezerwacje Miejsc
         </CardTitle>
       </CardHeader>
-      <CardContent className="w-full">
-        <div className="mb-6 flex flex-wrap gap-2">
-          <Button
-            variant={selectedRoute === "" ? "default" : "outline"}
-            size="sm"
+      <CardContent className="pt-6">
+        <div className="mb-6 flex flex-wrap gap-3">
+          <button
             onClick={() => setSelectedRoute("")}
-            className={
-              selectedRoute === "" ? "bg-blue-600 hover:bg-blue-700" : ""
-            }
+            className={`px-4 py-2 rounded-full font-medium transition-all ${
+              selectedRoute === ""
+                ? "bg-blue-600 text-white shadow-md"
+                : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
+            }`}
           >
             Wszystkie
-          </Button>
+          </button>
           {routes.map((route) => (
-            <Button
+            <button
               key={route.id}
-              variant={selectedRoute === route.id ? "default" : "outline"}
-              size="sm"
               onClick={() => setSelectedRoute(route.id)}
-              className={
+              className={`px-4 py-2 rounded-full font-medium transition-all ${
                 selectedRoute === route.id
-                  ? "bg-blue-600 hover:bg-blue-700"
-                  : ""
-              }
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
+              }`}
             >
               {route.name}
-            </Button>
+            </button>
           ))}
         </div>
         <div className="w-full overflow-x-auto">
           <Table className="w-full">
             <TableHeader>
-              <TableRow className="bg-blue-50 hover:bg-blue-50">
-                <TableHead className="text-blue-900 font-semibold">
+              <TableRow className="border-b dark:border-slate-700">
+                <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
                   Pasażer
                 </TableHead>
-                <TableHead className="text-blue-900 font-semibold">
+                <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
                   Miejsce
                 </TableHead>
-                <TableHead className="text-blue-900 font-semibold">
+                <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
                   Trasa
                 </TableHead>
-                <TableHead className="text-blue-900 font-semibold">
+                <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
                   Data
                 </TableHead>
-                <TableHead className="text-blue-900 font-semibold">
+                <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
                   Akcje
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredReservations.map((reservation) => (
-                <TableRow key={reservation.id} className="hover:bg-blue-50">
-                  <TableCell>{reservation.passenger}</TableCell>
-                  <TableCell className="font-semibold text-blue-600">
+                <TableRow
+                  key={reservation.id}
+                  className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition"
+                >
+                  <TableCell className="text-gray-900 dark:text-white py-4">
+                    {reservation.passenger}
+                  </TableCell>
+                  <TableCell className="font-semibold text-blue-600 dark:text-blue-400 py-4">
                     {reservation.seat}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-gray-600 dark:text-gray-400 py-4">
                     {routes.find((r) => r.id === reservation.route)?.name}
                   </TableCell>
-                  <TableCell>{reservation.date}</TableCell>
-                  <TableCell>
+                  <TableCell className="text-gray-600 dark:text-gray-400 py-4">
+                    {reservation.date}
+                  </TableCell>
+                  <TableCell className="py-4">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                      className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
                     >
                       Szczegóły
                     </Button>
