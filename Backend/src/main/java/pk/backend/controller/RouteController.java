@@ -1,16 +1,24 @@
 package pk.backend.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import pk.backend.entity.trip.Route;
+import pk.backend.service.RouteService;
+
+import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/routes")
 public class RouteController {
+
+    private final RouteService routeService;
 
     // ==================== Route Management ====================
 
-    // TODO: Implement get all routes
-    @GetMapping("/routes")
-    public void getAllRoutes() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    @GetMapping
+    public List<Route> getAllRoutes() {
+        return routeService.getAllRoutes();
     }
 
     // TODO: Implement get route by ID
