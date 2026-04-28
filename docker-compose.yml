@@ -1,4 +1,4 @@
-version: "3.9"
+#version: "3.9"
 
 services:
 #  frontend:
@@ -33,17 +33,17 @@ services:
   #     - db
 
   db:
-    image: postgres:17
+    image: postgres:18
     container_name: monorepo-db
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:admin}
-      POSTGRES_DB: ${POSTGRES_DB:bus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      POSTGRES_DB: ${POSTGRES_DB:-bus}
     ports:
       - "5432:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql
 
 volumes:
   db_data:
