@@ -8,10 +8,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { useState } from "react";
+import { Plus } from "lucide-react";
+
+interface Account {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+}
 
 export function AccountsBlock() {
-  // Mock data for user accounts
-  const accounts = [
+  const [accounts, setAccounts] = useState<Account[]>([
     {
       id: 1,
       name: "Jan Kowalski",
@@ -33,7 +49,35 @@ export function AccountsBlock() {
       role: "user",
       status: "Nieaktywny",
     },
-  ];
+  ]);
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    role: "user",
+    status: "Aktywny",
+  });
+
+  const handleAddAccount = () => {
+    if (formData.name && formData.email) {
+      const newAccount: Account = {
+        id: Math.max(...accounts.map((a) => a.id), 0) + 1,
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+        status: formData.status,
+      };
+      setAccounts([...accounts, newAccount]);
+      setFormData({
+        name: "",
+        email: "",
+        role: "user",
+        status: "Aktywny",
+      });
+      setIsDialogOpen(false);
+    }
+  };
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
@@ -60,9 +104,18 @@ export function AccountsBlock() {
   return (
     <Card className="shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
       <CardHeader className="border-b dark:border-slate-700 pb-6">
-        <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
-          Zarządzaj Kontami
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
+            Zarządzaj Kontami
+          </CardTitle>
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Dodaj Konto
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="pt-6">
         <div className="w-full overflow-x-auto">
@@ -131,6 +184,92 @@ export function AccountsBlock() {
           </Table>
         </div>
       </CardContent>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 dark:text-white">
+              Dodaj Nowe Konto
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Imię i Nazwisko
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                placeholder="np. Jan Kowalski"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                placeholder="np. jan@example.com"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Rola
+              </label>
+              <select
+                value={formData.role}
+                onChange={(e) =>
+                  setFormData({ ...formData, role: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+              >
+                <option value="user">Użytkownik</option>
+                <option value="secretary">Sekretarka</option>
+                <option value="owner">Właściciel</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Status
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) =>
+                  setFormData({ ...formData, status: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+              >
+                <option value="Aktywny">Aktywny</option>
+                <option value="Nieaktywny">Nieaktywny</option>
+              </select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
+            >
+              Anuluj
+            </Button>
+            <Button
+              onClick={handleAddAccount}
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white"
+            >
+              Dodaj
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

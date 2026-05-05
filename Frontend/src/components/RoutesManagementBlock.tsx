@@ -8,10 +8,28 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { useState } from "react";
+import { Plus } from "lucide-react";
+
+interface Route {
+  id: number;
+  number: string;
+  name: string;
+  distance: string;
+  frequency: string;
+  stops: number;
+  status: string;
+}
 
 export function RoutesManagementBlock() {
-  // Mock data for routes management
-  const routes = [
+  const [routes, setRoutes] = useState<Route[]>([
     {
       id: 1,
       number: "1",
@@ -39,7 +57,47 @@ export function RoutesManagementBlock() {
       stops: 12,
       status: "Nieaktywna",
     },
-  ];
+  ]);
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    number: "",
+    name: "",
+    distance: "",
+    frequency: "",
+    stops: "",
+    status: "Aktywna",
+  });
+
+  const handleAddRoute = () => {
+    if (
+      formData.number &&
+      formData.name &&
+      formData.distance &&
+      formData.frequency &&
+      formData.stops
+    ) {
+      const newRoute: Route = {
+        id: Math.max(...routes.map((r) => r.id), 0) + 1,
+        number: formData.number,
+        name: formData.name,
+        distance: formData.distance,
+        frequency: formData.frequency,
+        stops: parseInt(formData.stops),
+        status: formData.status,
+      };
+      setRoutes([...routes, newRoute]);
+      setFormData({
+        number: "",
+        name: "",
+        distance: "",
+        frequency: "",
+        stops: "",
+        status: "Aktywna",
+      });
+      setIsDialogOpen(false);
+    }
+  };
 
   const getStatusBadgeColor = (status: string) => {
     return status === "Aktywna"
@@ -50,9 +108,18 @@ export function RoutesManagementBlock() {
   return (
     <Card className="shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
       <CardHeader className="border-b dark:border-slate-700 pb-6">
-        <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
-          Ustaw Trasy
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
+            Ustaw Trasy
+          </CardTitle>
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Dodaj Trasę
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="pt-6">
         <div className="w-full overflow-x-auto">
@@ -127,6 +194,118 @@ export function RoutesManagementBlock() {
           </Table>
         </div>
       </CardContent>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 dark:text-white">
+              Dodaj Nową Trasę
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Numer Linii
+              </label>
+              <input
+                type="text"
+                value={formData.number}
+                onChange={(e) =>
+                  setFormData({ ...formData, number: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                placeholder="np. 1"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Nazwa Trasy
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                placeholder="np. Kraków - Warszawa"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Dystans
+              </label>
+              <input
+                type="text"
+                value={formData.distance}
+                onChange={(e) =>
+                  setFormData({ ...formData, distance: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                placeholder="np. 280 km"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Częstotliwość
+              </label>
+              <input
+                type="text"
+                value={formData.frequency}
+                onChange={(e) =>
+                  setFormData({ ...formData, frequency: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                placeholder="np. Co 2 godziny"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Liczba Przystanków
+              </label>
+              <input
+                type="number"
+                value={formData.stops}
+                onChange={(e) =>
+                  setFormData({ ...formData, stops: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                placeholder="np. 8"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Status
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) =>
+                  setFormData({ ...formData, status: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+              >
+                <option value="Aktywna">Aktywna</option>
+                <option value="Nieaktywna">Nieaktywna</option>
+              </select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
+            >
+              Anuluj
+            </Button>
+            <Button
+              onClick={handleAddRoute}
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white"
+            >
+              Dodaj
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
