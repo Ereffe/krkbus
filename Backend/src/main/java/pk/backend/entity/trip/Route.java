@@ -3,7 +3,8 @@ package pk.backend.entity.trip;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Getter
@@ -17,13 +18,11 @@ public class Route {
         private String name;
         private String description;
 
-        @OneToMany(mappedBy = "route")
-        private Set<Trip> trips;
-
-        @OneToMany(cascade = {
+        @ManyToMany(cascade = {
                         CascadeType.PERSIST,
                         CascadeType.MERGE
         })
         @JoinTable(name = "route_trip", joinColumns = @JoinColumn(name = "route_id"), inverseJoinColumns = @JoinColumn(name = "stop_id"))
-        private Set<Stop> stops;
+        @OrderColumn(name = "stop_order")
+        private List<Stop> stops = new ArrayList<>();
 }
