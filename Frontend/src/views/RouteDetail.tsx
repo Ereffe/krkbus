@@ -279,14 +279,6 @@ export function RouteDetail() {
               <button className="w-full bg-blue-600 dark:bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition">
                 Kup bilet
               </button>
-
-              {/* Additional Info */}
-              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg border border-blue-200 dark:border-blue-700">
-                <p className="text-xs text-blue-900 dark:text-blue-300">
-                  💡 Zapamiętaj, że możesz wygodnie kupić bilet za pośrednictwem
-                  naszej aplikacji mobilnej
-                </p>
-              </div>
             </div>
           </div>
         </div>
