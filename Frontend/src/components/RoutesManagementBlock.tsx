@@ -16,58 +16,111 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Trash2, MapPin } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { BusStop, Coordinate } from "@/types/bus";
+import { StopMapPicker } from "@/components/StopMapPicker";
 
 interface Route {
-  id: number;
+  id: string;
   number: string;
   name: string;
-  distance: string;
+  distance: number;
   frequency: string;
-  stops: number;
+  stops: BusStop[];
   status: string;
 }
 
 export function RoutesManagementBlock() {
   const [routes, setRoutes] = useState<Route[]>([
     {
-      id: 1,
+      id: "1",
       number: "1",
       name: "Kraków - Warszawa",
-      distance: "280 km",
+      distance: 280,
       frequency: "Co 2 godziny",
-      stops: 8,
+      stops: [
+        {
+          id: "stop-1",
+          name: "Kraków - Centrum",
+          coordinate: { latitude: 50.0467, longitude: 19.9454 },
+          arrivalTime: "00:00",
+        },
+        {
+          id: "stop-2",
+          name: "Warszawa - Centrum",
+          coordinate: { latitude: 52.2297, longitude: 21.012 },
+          arrivalTime: "04:30",
+        },
+      ],
       status: "Aktywna",
     },
     {
-      id: 2,
+      id: "2",
       number: "2",
       name: "Warszawa - Gdańsk",
-      distance: "340 km",
+      distance: 340,
       frequency: "Co 3 godziny",
-      stops: 6,
+      stops: [
+        {
+          id: "stop-w1",
+          name: "Warszawa - Centrum",
+          coordinate: { latitude: 52.2297, longitude: 21.012 },
+          arrivalTime: "00:00",
+        },
+        {
+          id: "stop-g1",
+          name: "Gdańsk - Centrum",
+          coordinate: { latitude: 54.372, longitude: 18.6466 },
+          arrivalTime: "05:00",
+        },
+      ],
       status: "Aktywna",
-    },
-    {
-      id: 3,
-      number: "3",
-      name: "Kraków - Gdańsk",
-      distance: "620 km",
-      frequency: "Codziennie",
-      stops: 12,
-      status: "Nieaktywna",
     },
   ]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedTab, setSelectedTab] = useState<"info" | "stops">("info");
   const [formData, setFormData] = useState({
     number: "",
     name: "",
     distance: "",
     frequency: "",
-    stops: "",
+    stops: [] as BusStop[],
     status: "Aktywna",
   });
+  const [mapCoordinate, setMapCoordinate] = useState<Coordinate | null>(null);
+  const [newStopName, setNewStopName] = useState("");
+  const [newStopTime, setNewStopTime] = useState("");
+
+  const generateId = () => {
+    return `stop-${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  const handleAddStop = () => {
+    if (mapCoordinate && newStopName) {
+      const newStop: BusStop = {
+        id: generateId(),
+        name: newStopName,
+        coordinate: mapCoordinate,
+        arrivalTime: newStopTime || "00:00",
+      };
+      setFormData({
+        ...formData,
+        stops: [...formData.stops, newStop],
+      });
+      setNewStopName("");
+      setNewStopTime("");
+      setMapCoordinate(null);
+    }
+  };
+
+  const handleRemoveStop = (stopId: string) => {
+    setFormData({
+      ...formData,
+      stops: formData.stops.filter((stop) => stop.id !== stopId),
+    });
+  };
 
   const handleAddRoute = () => {
     if (
@@ -75,28 +128,36 @@ export function RoutesManagementBlock() {
       formData.name &&
       formData.distance &&
       formData.frequency &&
-      formData.stops
+      formData.stops.length > 0
     ) {
       const newRoute: Route = {
-        id: Math.max(...routes.map((r) => r.id), 0) + 1,
+        id: generateId().replace("stop-", "route-"),
         number: formData.number,
         name: formData.name,
-        distance: formData.distance,
+        distance: parseFloat(formData.distance),
         frequency: formData.frequency,
-        stops: parseInt(formData.stops),
+        stops: formData.stops,
         status: formData.status,
       };
       setRoutes([...routes, newRoute]);
-      setFormData({
-        number: "",
-        name: "",
-        distance: "",
-        frequency: "",
-        stops: "",
-        status: "Aktywna",
-      });
+      resetForm();
       setIsDialogOpen(false);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      number: "",
+      name: "",
+      distance: "",
+      frequency: "",
+      stops: [],
+      status: "Aktywna",
+    });
+    setNewStopName("");
+    setNewStopTime("");
+    setMapCoordinate(null);
+    setSelectedTab("info");
   };
 
   const getStatusBadgeColor = (status: string) => {
@@ -162,13 +223,13 @@ export function RoutesManagementBlock() {
                     {route.name}
                   </TableCell>
                   <TableCell className="text-gray-600 dark:text-gray-400 py-4">
-                    {route.distance}
+                    {route.distance} km
                   </TableCell>
                   <TableCell className="text-gray-600 dark:text-gray-400 py-4">
                     {route.frequency}
                   </TableCell>
                   <TableCell className="text-gray-900 dark:text-white font-medium text-center py-4">
-                    {route.stops}
+                    {route.stops.length}
                   </TableCell>
                   <TableCell className="py-4">
                     <span
@@ -196,112 +257,244 @@ export function RoutesManagementBlock() {
       </CardContent>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700">
+        <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700 max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">
               Dodaj Nową Trasę
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Numer Linii
-              </label>
-              <input
-                type="text"
-                value={formData.number}
-                onChange={(e) =>
-                  setFormData({ ...formData, number: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                placeholder="np. 1"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Nazwa Trasy
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                placeholder="np. Kraków - Warszawa"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Dystans
-              </label>
-              <input
-                type="text"
-                value={formData.distance}
-                onChange={(e) =>
-                  setFormData({ ...formData, distance: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                placeholder="np. 280 km"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Częstotliwość
-              </label>
-              <input
-                type="text"
-                value={formData.frequency}
-                onChange={(e) =>
-                  setFormData({ ...formData, frequency: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                placeholder="np. Co 2 godziny"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Liczba Przystanków
-              </label>
-              <input
-                type="number"
-                value={formData.stops}
-                onChange={(e) =>
-                  setFormData({ ...formData, stops: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                placeholder="np. 8"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Status
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) =>
-                  setFormData({ ...formData, status: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+
+          <Tabs
+            value={selectedTab}
+            onValueChange={(v: string) => setSelectedTab(v as "info" | "stops")}
+          >
+            <TabsList className="grid w-full grid-cols-2 bg-gray-100 dark:bg-slate-700">
+              <TabsTrigger
+                value="info"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
               >
-                <option value="Aktywna">Aktywna</option>
-                <option value="Nieaktywna">Nieaktywna</option>
-              </select>
-            </div>
-          </div>
-          <DialogFooter>
+                Informacje o trasie
+              </TabsTrigger>
+              <TabsTrigger
+                value="stops"
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
+              >
+                Przystanki ({formData.stops.length})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="info" className="space-y-4 py-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Numer Linii
+                </label>
+                <input
+                  type="text"
+                  value={formData.number}
+                  onChange={(e) =>
+                    setFormData({ ...formData, number: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                  placeholder="np. 1"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nazwa Trasy
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                  placeholder="np. Kraków - Warszawa"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Dystans (km)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.distance}
+                    onChange={(e) =>
+                      setFormData({ ...formData, distance: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                    placeholder="np. 280"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Częstotliwość
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.frequency}
+                    onChange={(e) =>
+                      setFormData({ ...formData, frequency: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                    placeholder="np. Co 2 godziny"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Status
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) =>
+                    setFormData({ ...formData, status: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                >
+                  <option value="Aktywna">Aktywna</option>
+                  <option value="Nieaktywna">Nieaktywna</option>
+                </select>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="stops" className="space-y-4 py-4">
+              {/* Mapa do wyboru przystanków */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <MapPin className="w-4 h-4 inline mr-1" />
+                  Kliknij na mapę, aby dodać przystanekk
+                </label>
+                <StopMapPicker
+                  onCoordinateSelect={setMapCoordinate}
+                  selectedCoordinate={mapCoordinate}
+                />
+              </div>
+
+              {/* Forma do wpisania danych przystanku */}
+              <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 space-y-3 border border-gray-200 dark:border-slate-600">
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Nazwa przystanku
+                    </label>
+                    <input
+                      type="text"
+                      value={newStopName}
+                      onChange={(e) => setNewStopName(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                      placeholder="np. Kraków - Centrum"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Współrzędne
+                      </label>
+                      <div className="px-3 py-2 bg-gray-100 dark:bg-slate-600 rounded-lg text-sm text-gray-600 dark:text-gray-300">
+                        {mapCoordinate
+                          ? `${mapCoordinate.latitude.toFixed(4)}, ${mapCoordinate.longitude.toFixed(4)}`
+                          : "Kliknij na mapę"}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Czas przyjazdu (HH:MM)
+                      </label>
+                      <input
+                        type="time"
+                        value={newStopTime}
+                        onChange={(e) => setNewStopTime(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleAddStop}
+                  disabled={!newStopName || !mapCoordinate}
+                  className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Dodaj przystanekk
+                </Button>
+              </div>
+
+              {/* Lista przystanków */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Dodane przystanki ({formData.stops.length})
+                </label>
+                {formData.stops.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-slate-700 rounded-lg border border-dashed border-gray-300 dark:border-slate-600">
+                    Brak dodanych przystanków
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {formData.stops.map((stop, index) => (
+                      <div
+                        key={stop.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-slate-600"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-400 text-xs font-bold">
+                              {index + 1}
+                            </span>
+                            <div className="min-w-0">
+                              <p className="font-medium text-gray-900 dark:text-white truncate">
+                                {stop.name}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {stop.coordinate.latitude.toFixed(4)},{" "}
+                                {stop.coordinate.longitude.toFixed(4)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 ml-2">
+                          <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                            {stop.arrivalTime}
+                          </span>
+                          <button
+                            onClick={() => handleRemoveStop(stop.id)}
+                            className="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <DialogFooter className="pt-4 border-t dark:border-slate-700">
             <Button
               variant="outline"
-              onClick={() => setIsDialogOpen(false)}
+              onClick={() => {
+                resetForm();
+                setIsDialogOpen(false);
+              }}
               className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
             >
               Anuluj
             </Button>
             <Button
               onClick={handleAddRoute}
-              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white"
+              disabled={
+                !formData.number ||
+                !formData.name ||
+                !formData.distance ||
+                !formData.frequency ||
+                formData.stops.length === 0
+              }
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Dodaj
+              Dodaj trasę
             </Button>
           </DialogFooter>
         </DialogContent>

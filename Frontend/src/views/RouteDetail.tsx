@@ -147,7 +147,7 @@ export function RouteDetail() {
                           Przyjazd: {stop.arrivalTime}
                         </p>
                       )}
-                      s
+                      
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-gray-500">Współrzędne</p>
