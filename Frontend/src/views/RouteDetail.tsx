@@ -144,12 +144,6 @@ export function RouteDetail() {
                       <p className="font-semibold text-gray-900 dark:text-white">
                         {stop.name}
                       </p>
-                      {stop.arrivalTime && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Przyjazd: {stop.arrivalTime}
-                        </p>
-                      )}
-                      s
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-gray-500 dark:text-gray-400">
