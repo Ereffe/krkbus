@@ -7,10 +7,16 @@ import type { Reward } from "@/types/rewards";
 import { useState } from "react";
 import { Filter } from "lucide-react";
 
-type CategoryFilter = "all" | "discount" | "ticket" | "merchandise" | "experience";
+type CategoryFilter =
+  | "all"
+  | "discount"
+  | "ticket"
+  | "merchandise"
+  | "experience";
 
 export function Points() {
-  const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>("all");
+  const [selectedCategory, setSelectedCategory] =
+    useState<CategoryFilter>("all");
   const [userPoints, setUserPoints] = useState(mockUserPoints);
 
   const filteredRewards =
@@ -61,10 +67,10 @@ export function Points() {
       <div className="space-y-12">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
             Moje Punkty
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-600 dark:text-gray-400">
             Zbieraj punkty z każdej przejazdu i wymieniaj je na nagrody
           </p>
         </div>
@@ -79,8 +85,10 @@ export function Points() {
         {/* Rewards Section */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-3xl font-bold text-gray-900">Dostępne Nagrody</h2>
-            <div className="flex items-center gap-2 text-gray-600">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Dostępne Nagrody
+            </h2>
+            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
               <Filter className="w-5 h-5" />
               <span className="text-sm font-medium">Filtruj</span>
             </div>
@@ -94,8 +102,8 @@ export function Points() {
                 onClick={() => setSelectedCategory(category.id)}
                 className={`px-4 py-2 rounded-full font-medium transition-all ${
                   selectedCategory === category.id
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-blue-600 text-white shadow-md dark:bg-blue-500"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-800 dark:text-gray-200 dark:hover:bg-slate-700"
                 }`}
               >
                 {category.label}
@@ -121,7 +129,7 @@ export function Points() {
           {/* No Results */}
           {filteredRewards.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-600 text-lg">
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
                 Brak dostępnych nagród w tej kategorii
               </p>
             </div>
@@ -132,11 +140,14 @@ export function Points() {
         <PointsHistory />
 
         {/* Info Section */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="font-bold text-blue-900 mb-3">💡 Jak zdobywać punkty?</h3>
-          <ul className="space-y-2 text-sm text-blue-800">
+        <div className="bg-blue-50 border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800 rounded-lg p-6">
+          <h3 className="font-bold text-blue-900 dark:text-blue-200 mb-3">
+            💡 Jak zdobywać punkty?
+          </h3>
+          <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
             <li>
-              • Za każdą zakupioną bilet zyskujesz 10% wartości biletu w punktach
+              • Za każdą zakupioną bilet zyskujesz 10% wartości biletu w
+              punktach
             </li>
             <li>• Bonusy powitalny dla nowych użytkowników: +200 punktów</li>
             <li>• Program referalny: zaproś znajomych i zyskaj +50 punktów</li>

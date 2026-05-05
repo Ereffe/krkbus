@@ -137,21 +137,25 @@ export function RouteDetail() {
                     key={stop.id}
                     className="flex items-start gap-4 pb-4 border-b dark:border-slate-700 last:border-b-0"
                   >
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-sm shrink-0">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 font-bold text-sm shrink-0">
                       {index + 1}
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-900">{stop.name}</p>
+                      <p className="font-semibold text-gray-900 dark:text-white">
+                        {stop.name}
+                      </p>
                       {stop.arrivalTime && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           Przyjazd: {stop.arrivalTime}
                         </p>
                       )}
                       s
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-500">Współrzędne</p>
-                      <p className="text-sm text-gray-700">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Współrzędne
+                      </p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
                         {stop.coordinate.latitude.toFixed(4)},{" "}
                         {stop.coordinate.longitude.toFixed(4)}
                       </p>
