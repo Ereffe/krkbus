@@ -268,7 +268,7 @@ export function RoutesManagementBlock() {
             value={selectedTab}
             onValueChange={(v: string) => setSelectedTab(v as "info" | "stops")}
           >
-            <TabsList className="grid w-full grid-cols-2 bg-gray-100 dark:bg-slate-700">
+            <TabsList className="grid w-full grid-cols-2 gap-3 bg-gray-100 dark:bg-slate-700 p-2">
               <TabsTrigger
                 value="info"
                 className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
