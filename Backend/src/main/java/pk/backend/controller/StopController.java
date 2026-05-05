@@ -1,37 +1,41 @@
 package pk.backend.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import pk.backend.entity.trip.Stop;
+import pk.backend.service.StopService;
+import pk.backend.dto.StopDTO;
+
+import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 public class StopController {
 
-    // TODO: Implement get all stops
+    private final StopService stopService;
+
     @GetMapping("/stops")
-    public void getAllStops() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public List<Stop> getAllStops() {
+        return stopService.getAllStops();
     }
 
-    // TODO: Implement get stop by ID
     @GetMapping("/stops/{stopId}")
-    public void getStopById(@PathVariable Integer stopId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public Stop getStopById(@PathVariable Integer stopId) {
+        return stopService.getStopById(stopId);
     }
 
-    // TODO: Implement create stop
     @PostMapping("/stops")
-    public void createStop() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public Stop createStop(@RequestBody StopDTO stopDTO) {
+        return stopService.createStop(stopDTO);
     }
 
-    // TODO: Implement update stop
     @PutMapping("/stops/{stopId}")
-    public void updateStop(@PathVariable Integer stopId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public Stop updateStop(@PathVariable Integer stopId, @RequestBody StopDTO stopDTO) {
+        return stopService.updateStop(stopId, stopDTO);
     }
 
-    // TODO: Implement delete stop
     @DeleteMapping("/stops/{stopId}")
     public void deleteStop(@PathVariable Integer stopId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        stopService.deleteStop(stopId);
     }
 }

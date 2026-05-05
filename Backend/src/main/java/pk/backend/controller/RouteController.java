@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import pk.backend.entity.trip.Route;
 import pk.backend.service.RouteService;
+import pk.backend.dto.RouteDTO;
 
 import java.util.List;
 
@@ -21,28 +22,24 @@ public class RouteController {
         return routeService.getAllRoutes();
     }
 
-    // TODO: Implement get route by ID
     @GetMapping("/routes/{routeId}")
-    public void getRouteById(@PathVariable Integer routeId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public Route getRouteById(@PathVariable Integer routeId) {
+        return routeService.getRouteById(routeId);
     }
 
-    // TODO: Implement create route
     @PostMapping("/routes")
-    public void createRoute() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public Route createRoute(@RequestBody RouteDTO routeDTO) {
+        return routeService.createRoute(routeDTO);
     }
 
-    // TODO: Implement update route
     @PutMapping("/routes/{routeId}")
-    public void updateRoute(@PathVariable Integer routeId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public Route updateRoute(@PathVariable Integer routeId, @RequestBody RouteDTO routeDTO) {
+        return routeService.updateRoute(routeId, routeDTO);
     }
 
-    // TODO: Implement delete route
     @DeleteMapping("/routes/{routeId}")
     public void deleteRoute(@PathVariable Integer routeId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        routeService.deleteRoute(routeId);
     }
 
     // ==================== Price Management ====================
