@@ -6,6 +6,8 @@ import { OwnerPage } from "@/components/OwnerPage";
 import { Dashboard } from "@/views/Dashboard";
 import { RouteDetail } from "@/views/RouteDetail";
 import { Points } from "@/views/Points";
+import { DriverDashboard } from "@/views/DriverDashboard";
+import { DriverPortal } from "@/views/DriverPortal";
 
 function App() {
   return (
@@ -16,10 +18,12 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/route/:id" element={<RouteDetail />} />
           <Route path="/points" element={<Points />} />
+          <Route path="/driver" element={<DriverPortal />} />
 
           {/* Admin Routes */}
           <Route path="/admin" element={<MainPage />} />
           <Route path="/owner" element={<OwnerPage />} />
+          <Route path="/admin/drivers" element={<DriverDashboard />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
