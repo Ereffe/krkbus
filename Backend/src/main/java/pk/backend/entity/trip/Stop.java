@@ -13,10 +13,6 @@ public class Stop {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer stopID;
     private String name;
-    private String location;
-    private Integer stopOrder;
-
-    @ManyToOne
-    @JoinColumn(name = "route_id")
-    private Route route;
+    private Double latitude;
+    private Double longitude;
 }

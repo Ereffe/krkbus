@@ -34,14 +34,8 @@ public class StopService {
     public Stop createStop(StopDTO stopDTO) {
         Stop stop = new Stop();
         stop.setName(stopDTO.getName());
-        stop.setLocation(stopDTO.getLocation());
-        stop.setStopOrder(stopDTO.getStopOrder());
-        
-        if (stopDTO.getRouteId() != null) {
-            Route route = routeRepository.findById(stopDTO.getRouteId())
-                    .orElseThrow(() -> new EntityNotFoundException("Route with ID " + stopDTO.getRouteId() + " not found"));
-            stop.setRoute(route);
-        }
+        stop.setLatitude(stopDTO.getLatitude());
+        stop.setLongitude(stopDTO.getLongitude());
 
         return stopRepository.save(stop);
     }
@@ -51,16 +45,8 @@ public class StopService {
         Stop stop = stopRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Stop with ID " + id + " not found"));
         stop.setName(stopDTO.getName());
-        stop.setLocation(stopDTO.getLocation());
-        stop.setStopOrder(stopDTO.getStopOrder());
-        
-        if (stopDTO.getRouteId() != null) {
-            Route route = routeRepository.findById(stopDTO.getRouteId())
-                    .orElseThrow(() -> new EntityNotFoundException("Route with ID " + stopDTO.getRouteId() + " not found"));
-            stop.setRoute(route);
-        } else {
-            stop.setRoute(null);
-        }
+        stop.setLatitude(stopDTO.getLatitude());
+        stop.setLongitude(stopDTO.getLongitude());
 
         return stopRepository.save(stop);
     }

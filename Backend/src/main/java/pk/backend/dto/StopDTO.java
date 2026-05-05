@@ -11,7 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class StopDTO {
     private String name;
-    private String location;
-    private Integer stopOrder;
-    private Integer routeId;
+    private Double latitude;
+    private Double longitude;
 }

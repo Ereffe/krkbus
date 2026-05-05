@@ -70,4 +70,3 @@ public class RouteService {
         routeRepository.deleteById(id);
     }
 }
-
