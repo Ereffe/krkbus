@@ -24,14 +24,16 @@ export function RewardCard({ reward, userPoints, onRedeem }: RewardCardProps) {
     <div
       className={`rounded-lg border-2 transition-all ${
         isRedeemed
-          ? "border-green-500 bg-green-50"
-          : "border-gray-200 hover:border-blue-400 bg-white"
+          ? "border-green-500 bg-green-50 dark:bg-green-900/30"
+          : "border-border hover:border-blue-400 dark:hover:border-blue-500 bg-card text-card-foreground"
       } overflow-hidden`}
     >
       {/* Reward Icon/Header */}
       <div
         className={`p-6 text-center text-6xl ${
-          isRedeemed ? "bg-green-100" : "bg-gradient-to-r from-blue-50 to-indigo-50"
+          isRedeemed
+            ? "bg-green-100 dark:bg-green-900/40"
+            : "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700"
         }`}
       >
         {reward.icon}
@@ -46,20 +48,24 @@ export function RewardCard({ reward, userPoints, onRedeem }: RewardCardProps) {
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="font-bold text-lg text-gray-900 mb-1">{reward.name}</h3>
-        <p className="text-sm text-gray-600 mb-3">{reward.description}</p>
+        <h3 className="font-bold text-lg text-foreground mb-1">
+          {reward.name}
+        </h3>
+        <p className="text-sm text-muted-foreground mb-3">
+          {reward.description}
+        </p>
 
         {/* Category Badge */}
         <div className="flex items-center gap-2 mb-3">
           <span
             className={`text-xs font-semibold px-2 py-1 rounded-full ${
               reward.category === "discount"
-                ? "bg-blue-100 text-blue-700"
+                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
                 : reward.category === "ticket"
-                  ? "bg-purple-100 text-purple-700"
+                  ? "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
                   : reward.category === "merchandise"
-                    ? "bg-pink-100 text-pink-700"
-                    : "bg-orange-100 text-orange-700"
+                    ? "bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300"
+                    : "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300"
             }`}
           >
             {reward.category === "discount"
@@ -71,25 +77,25 @@ export function RewardCard({ reward, userPoints, onRedeem }: RewardCardProps) {
                   : "Doświadczenie"}
           </span>
           {remainingQuantity > 0 && remainingQuantity < 20 && (
-            <span className="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-700">
+            <span className="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
               Tylko {remainingQuantity} szt.
             </span>
           )}
         </div>
 
         {/* Points Cost */}
-        <div className="bg-blue-50 rounded-lg p-3 mb-4">
+        <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3 mb-4">
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-blue-600">
+            <span className="text-2xl font-bold text-blue-600 dark:text-blue-300">
               {reward.pointsCost}
             </span>
-            <span className="text-sm text-gray-600">punktów</span>
+            <span className="text-sm text-muted-foreground">punktów</span>
           </div>
         </div>
 
         {/* Valid Until */}
         {reward.validUntil && (
-          <p className="text-xs text-gray-500 mb-4">
+          <p className="text-xs text-muted-foreground mb-4">
             Ważna do: {new Date(reward.validUntil).toLocaleDateString("pl-PL")}
           </p>
         )}
@@ -103,7 +109,7 @@ export function RewardCard({ reward, userPoints, onRedeem }: RewardCardProps) {
               ? "bg-green-500 text-white"
               : canRedeem
                 ? "bg-blue-600 text-white hover:bg-blue-700 active:scale-95"
-                : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-slate-700 dark:text-slate-300"
           }`}
         >
           {isRedeemed ? "✓ Wymieniono!" : canRedeem ? "Wymień" : "Brak punktów"}
