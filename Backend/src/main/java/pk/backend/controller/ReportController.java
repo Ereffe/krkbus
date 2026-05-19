@@ -1,46 +1,49 @@
 package pk.backend.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import pk.backend.entity.Report;
+import pk.backend.service.ReportService;
+import pk.backend.dto.ReportDTO;
+
+import java.util.List;
 
 /**
- * Controller for Secretary/Worker use cases
- * Handles administrative and system management operations using REST API CRUD operations
+ * Controller for Worker use cases
+ * Handles report management operations using REST API CRUD operations
  */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/worker")
 public class ReportController {
 
+    private final ReportService reportService;
 
     // ==================== Report Management ====================
 
-    // TODO: Implement get all reports
     @GetMapping("/reports")
-    public void getAllReports() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public List<Report> getAllReports() {
+        return reportService.getAllReports();
     }
 
-    // TODO: Implement get report by ID
     @GetMapping("/reports/{reportId}")
-    public void getReportById(@PathVariable Integer reportId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public Report getReportById(@PathVariable Integer reportId) {
+        return reportService.getReportById(reportId);
     }
 
-    // TODO: Implement create report
     @PostMapping("/reports")
-    public void createReport() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public Report createReport(@RequestBody ReportDTO reportDTO) {
+        return reportService.createReport(reportDTO);
     }
 
-    // TODO: Implement update report
     @PutMapping("/reports/{reportId}")
-    public void updateReport(@PathVariable Integer reportId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public Report updateReport(@PathVariable Integer reportId, @RequestBody ReportDTO reportDTO) {
+        return reportService.updateReport(reportId, reportDTO);
     }
 
-    // TODO: Implement delete report
     @DeleteMapping("/reports/{reportId}")
     public void deleteReport(@PathVariable Integer reportId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        reportService.deleteReport(reportId);
     }
 
 }

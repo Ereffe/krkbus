@@ -10,4 +10,3 @@ import pk.backend.entity.user.ScheduleEntry;
 @Repository
 public interface ScheduleEntryRepository extends JpaRepository<ScheduleEntry, Integer> {
 }
-

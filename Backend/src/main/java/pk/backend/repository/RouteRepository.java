@@ -10,4 +10,3 @@ import pk.backend.entity.trip.Route;
 @Repository
 public interface RouteRepository extends JpaRepository<Route, Integer> {
 }
-

@@ -10,4 +10,3 @@ import pk.backend.entity.user.Employee;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
 }
-

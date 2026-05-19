@@ -10,4 +10,3 @@ import pk.backend.entity.trip.Trip;
 @Repository
 public interface TripRepository extends JpaRepository<Trip, Integer> {
 }
-

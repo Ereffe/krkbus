@@ -10,4 +10,3 @@ import pk.backend.entity.user.UserProfile;
 @Repository
 public interface UserProfileRepository extends JpaRepository<UserProfile, Integer> {
 }
-
