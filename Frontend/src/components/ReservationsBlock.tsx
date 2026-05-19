@@ -8,46 +8,99 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+interface ApiRoute {
+  routeID: number;
+  name: string;
+}
+
+interface ApiTrip {
+  tripID: number;
+  departureTime: string;
+  arrivalTime: string;
+  route?: { routeID: number; name?: string };
+  routeId?: number;
+}
+
+interface UiTripRow {
+  id: number;
+  passenger: string;
+  seat: string;
+  routeId: string;
+  date: string;
+}
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+
+const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers ?? {}),
+    },
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed (${response.status})`);
+  }
+
+  if (response.status === 204) {
+    return null as T;
+  }
+
+  return (await response.json()) as T;
+};
 
 export function ReservationsBlock() {
   const [selectedRoute, setSelectedRoute] = useState<string>("");
+  const [routes, setRoutes] = useState<ApiRoute[]>([]);
+  const [trips, setTrips] = useState<UiTripRow[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Mock data for routes
-  const routes = [
-    { id: "krk-waw", name: "Kraków - Warszawa" },
-    { id: "waw-gda", name: "Warszawa - Gdańsk" },
-    { id: "krk-gda", name: "Kraków - Gdańsk" },
-  ];
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const [routesData, tripsData] = await Promise.all([
+        fetchJson<ApiRoute[]>(`${API_BASE_URL}/api/routes`),
+        fetchJson<ApiTrip[]>(`${API_BASE_URL}/trips`),
+      ]);
+      setRoutes(routesData ?? []);
+      const mappedTrips = (tripsData ?? []).map((trip) => ({
+        id: trip.tripID,
+        passenger: "—",
+        seat: "—",
+        routeId:
+          trip.route?.routeID?.toString() ?? trip.routeId?.toString() ?? "—",
+        date: trip.departureTime?.split("T")[0] ?? "—",
+      }));
+      setTrips(mappedTrips);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Nie udało się pobrać rezerwacji.";
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  // Mock data for reservations
-  const reservations = [
-    {
-      id: 1,
-      passenger: "Jan Kowalski",
-      seat: "A1",
-      route: "krk-waw",
-      date: "2023-10-15",
-    },
-    {
-      id: 2,
-      passenger: "Anna Nowak",
-      seat: "B2",
-      route: "waw-gda",
-      date: "2023-10-16",
-    },
-    {
-      id: 3,
-      passenger: "Piotr Wiśniewski",
-      seat: "C3",
-      route: "krk-gda",
-      date: "2023-10-17",
-    },
-  ];
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-  const filteredReservations = selectedRoute
-    ? reservations.filter((res) => res.route === selectedRoute)
-    : reservations;
+  const filteredReservations = useMemo(
+    () =>
+      selectedRoute
+        ? trips.filter((res) => res.routeId === selectedRoute)
+        : trips,
+    [selectedRoute, trips],
+  );
 
   return (
     <Card className="shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
@@ -70,10 +123,10 @@ export function ReservationsBlock() {
           </button>
           {routes.map((route) => (
             <button
-              key={route.id}
-              onClick={() => setSelectedRoute(route.id)}
+              key={route.routeID}
+              onClick={() => setSelectedRoute(route.routeID.toString())}
               className={`px-4 py-2 rounded-full font-medium transition-all ${
-                selectedRoute === route.id
+                selectedRoute === route.routeID.toString()
                   ? "bg-blue-600 text-white shadow-md"
                   : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
               }`}
@@ -116,7 +169,9 @@ export function ReservationsBlock() {
                     {reservation.seat}
                   </TableCell>
                   <TableCell className="text-gray-600 dark:text-gray-400 py-4">
-                    {routes.find((r) => r.id === reservation.route)?.name}
+                    {routes.find(
+                      (r) => r.routeID.toString() === reservation.routeId,
+                    )?.name ?? "—"}
                   </TableCell>
                   <TableCell className="text-gray-600 dark:text-gray-400 py-4">
                     {reservation.date}
@@ -132,9 +187,24 @@ export function ReservationsBlock() {
                   </TableCell>
                 </TableRow>
               ))}
+              {!isLoading && filteredReservations.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="py-6 text-center text-gray-500 dark:text-gray-400"
+                  >
+                    Brak rezerwacji do wyświetlenia
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
+        {errorMessage && (
+          <p className="text-sm text-red-600 dark:text-red-300">
+            {errorMessage}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

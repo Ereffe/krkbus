@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 
 interface Reward {
@@ -26,30 +26,40 @@ interface Reward {
   available: number;
 }
 
+interface ApiReward {
+  rewardID: number;
+  name: string;
+  pointCost: number;
+  availableQuantity: number;
+}
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+
+const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers ?? {}),
+    },
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed (${response.status})`);
+  }
+
+  if (response.status === 204) {
+    return null as T;
+  }
+
+  return (await response.json()) as T;
+};
+
 export function RewardsBlock() {
-  const [rewards, setRewards] = useState<Reward[]>([
-    {
-      id: 1,
-      name: "Bilet 50% taniej",
-      pointsCost: 500,
-      category: "discount",
-      available: 150,
-    },
-    {
-      id: 2,
-      name: "Bilet bezpłatny",
-      pointsCost: 1000,
-      category: "ticket",
-      available: 50,
-    },
-    {
-      id: 3,
-      name: "T-shirt KKBus",
-      pointsCost: 300,
-      category: "merchandise",
-      available: 80,
-    },
-  ]);
+  const [rewards, setRewards] = useState<Reward[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -59,18 +69,67 @@ export function RewardsBlock() {
     available: "",
   });
 
-  const handleAddReward = () => {
+  const mapApiReward = (reward: ApiReward): Reward => ({
+    id: reward.rewardID,
+    name: reward.name,
+    pointsCost: reward.pointCost,
+    category: "discount",
+    available: reward.availableQuantity,
+  });
+
+  const loadRewards = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const data = await fetchJson<ApiReward[]>(`${API_BASE_URL}/api/rewards`);
+      setRewards((data ?? []).map(mapApiReward));
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Nie udało się pobrać nagród.";
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRewards();
+  }, [loadRewards]);
+
+  const handleAddReward = async () => {
     if (formData.name && formData.pointsCost && formData.available) {
-      const newReward: Reward = {
-        id: Math.max(...rewards.map((r) => r.id), 0) + 1,
-        name: formData.name,
-        pointsCost: parseInt(formData.pointsCost),
-        category: formData.category,
-        available: parseInt(formData.available),
-      };
-      setRewards([...rewards, newReward]);
-      setFormData({ name: "", pointsCost: "", category: "discount", available: "" });
-      setIsDialogOpen(false);
+      setIsLoading(true);
+      setErrorMessage(null);
+      try {
+        const createdReward = await fetchJson<ApiReward>(
+          `${API_BASE_URL}/api/rewards`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              name: formData.name,
+              pointCost: parseInt(formData.pointsCost),
+              availableQuantity: parseInt(formData.available),
+              clientId: null,
+            }),
+          },
+        );
+        setRewards((prev) => [...prev, mapApiReward(createdReward)]);
+        setFormData({
+          name: "",
+          pointsCost: "",
+          category: "discount",
+          available: "",
+        });
+        setIsDialogOpen(false);
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Nie udało się dodać nagrody.";
+        setErrorMessage(message);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -91,6 +150,11 @@ export function RewardsBlock() {
         </div>
       </CardHeader>
       <CardContent className="pt-6">
+        {errorMessage && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200">
+            {errorMessage}
+          </div>
+        )}
         <div className="w-full overflow-x-auto">
           <Table className="w-full">
             <TableHeader>
@@ -141,6 +205,16 @@ export function RewardsBlock() {
                   </TableCell>
                 </TableRow>
               ))}
+              {!isLoading && rewards.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="py-8 text-center text-gray-500 dark:text-gray-400"
+                  >
+                    Brak nagród do wyświetlenia
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
@@ -224,9 +298,10 @@ export function RewardsBlock() {
             </Button>
             <Button
               onClick={handleAddReward}
+              disabled={isLoading}
               className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white"
             >
-              Dodaj
+              {isLoading ? "Zapisywanie..." : "Dodaj"}
             </Button>
           </DialogFooter>
         </DialogContent>

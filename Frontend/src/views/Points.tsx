@@ -2,10 +2,50 @@ import { Layout } from "@/components/Layout";
 import { PointsStats } from "@/components/PointsStats";
 import { PointsHistory } from "@/components/PointsHistory";
 import { RewardCard } from "@/components/RewardCard";
-import { mockRewards, mockUserPoints } from "@/data/mockRewards";
+import { mockUserPoints } from "@/data/mockRewards";
 import type { Reward } from "@/types/rewards";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Filter } from "lucide-react";
+
+interface ApiReward {
+  rewardID: number;
+  name: string;
+  pointCost: number;
+  availableQuantity: number;
+}
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+
+const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers ?? {}),
+    },
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed (${response.status})`);
+  }
+
+  if (response.status === 204) {
+    return null as T;
+  }
+
+  return (await response.json()) as T;
+};
+
+const mapApiReward = (reward: ApiReward): Reward => ({
+  id: reward.rewardID.toString(),
+  name: reward.name,
+  description: "Nagroda punktowa",
+  pointsCost: reward.pointCost,
+  icon: "🎁",
+  category: "discount",
+  quantity: reward.availableQuantity,
+});
 
 type CategoryFilter =
   | "all"
@@ -18,11 +58,36 @@ export function Points() {
   const [selectedCategory, setSelectedCategory] =
     useState<CategoryFilter>("all");
   const [userPoints, setUserPoints] = useState(mockUserPoints);
+  const [rewards, setRewards] = useState<Reward[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const filteredRewards =
-    selectedCategory === "all"
-      ? mockRewards
-      : mockRewards.filter((reward) => reward.category === selectedCategory);
+  const loadRewards = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const data = await fetchJson<ApiReward[]>(`${API_BASE_URL}/api/rewards`);
+      setRewards((data ?? []).map(mapApiReward));
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Nie udało się pobrać nagród.";
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRewards();
+  }, [loadRewards]);
+
+  const filteredRewards = useMemo(
+    () =>
+      selectedCategory === "all"
+        ? rewards
+        : rewards.filter((reward) => reward.category === selectedCategory),
+    [rewards, selectedCategory],
+  );
 
   const handleRedeem = (reward: Reward) => {
     if (userPoints.availablePoints >= reward.pointsCost) {
@@ -38,27 +103,27 @@ export function Points() {
     {
       id: "all",
       label: "Wszystkie",
-      count: mockRewards.length,
+      count: rewards.length,
     },
     {
       id: "discount",
       label: "Zniżki",
-      count: mockRewards.filter((r) => r.category === "discount").length,
+      count: rewards.filter((r) => r.category === "discount").length,
     },
     {
       id: "ticket",
       label: "Bilety",
-      count: mockRewards.filter((r) => r.category === "ticket").length,
+      count: rewards.filter((r) => r.category === "ticket").length,
     },
     {
       id: "merchandise",
       label: "Produkty",
-      count: mockRewards.filter((r) => r.category === "merchandise").length,
+      count: rewards.filter((r) => r.category === "merchandise").length,
     },
     {
       id: "experience",
       label: "Doświadczenia",
-      count: mockRewards.filter((r) => r.category === "experience").length,
+      count: rewards.filter((r) => r.category === "experience").length,
     },
   ];
 
@@ -126,8 +191,14 @@ export function Points() {
             ))}
           </div>
 
+          {errorMessage && (
+            <div className="text-center text-sm text-red-600 dark:text-red-300">
+              {errorMessage}
+            </div>
+          )}
+
           {/* No Results */}
-          {filteredRewards.length === 0 && (
+          {!isLoading && filteredRewards.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-600 dark:text-gray-400 text-lg">
                 Brak dostępnych nagród w tej kategorii

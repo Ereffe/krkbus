@@ -8,24 +8,65 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { useCallback, useEffect, useState } from "react";
+
+interface ApiReport {
+  id: number;
+  title: string;
+  date: string;
+  status: string;
+}
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+
+const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers ?? {}),
+    },
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed (${response.status})`);
+  }
+
+  if (response.status === 204) {
+    return null as T;
+  }
+
+  return (await response.json()) as T;
+};
 
 export function ReportsBlock() {
-  // Mock data for reports
-  const reports = [
-    {
-      id: 1,
-      title: "Raport sprzedaży miesięczny",
-      date: "2023-10-01",
-      status: "Gotowy",
-    },
-    {
-      id: 2,
-      title: "Raport pasażerów",
-      date: "2023-10-05",
-      status: "W trakcie",
-    },
-    { id: 3, title: "Raport finansowy", date: "2023-10-10", status: "Gotowy" },
-  ];
+  const [reports, setReports] = useState<ApiReport[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadReports = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const data = await fetchJson<ApiReport[]>(
+        `${API_BASE_URL}/api/worker/reports`,
+      );
+      setReports(data ?? []);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Nie udało się pobrać raportów.";
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadReports();
+  }, [loadReports]);
 
   return (
     <Card className="shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
@@ -35,6 +76,11 @@ export function ReportsBlock() {
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-6">
+        {errorMessage && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200">
+            {errorMessage}
+          </div>
+        )}
         <div className="w-full overflow-x-auto">
           <Table className="w-full">
             <TableHeader>
@@ -87,6 +133,16 @@ export function ReportsBlock() {
                   </TableCell>
                 </TableRow>
               ))}
+              {!isLoading && reports.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="py-6 text-center text-gray-500 dark:text-gray-400"
+                  >
+                    Brak raportów do wyświetlenia
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
