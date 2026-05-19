@@ -10,4 +10,3 @@ import pk.backend.entity.reservation.Reservation;
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Integer> {
 }
-

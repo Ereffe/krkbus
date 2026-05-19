@@ -10,4 +10,3 @@ import pk.backend.entity.vehicle.FuelRecord;
 @Repository
 public interface FuelRecordRepository extends JpaRepository<FuelRecord, Integer> {
 }
-
