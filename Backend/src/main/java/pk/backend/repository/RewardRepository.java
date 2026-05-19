@@ -10,4 +10,3 @@ import pk.backend.entity.Reward;
 @Repository
 public interface RewardRepository extends JpaRepository<Reward, Integer> {
 }
-

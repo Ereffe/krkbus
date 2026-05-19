@@ -3,8 +3,11 @@ package pk.backend.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import pk.backend.entity.trip.Route;
+import pk.backend.entity.trip.Price;
 import pk.backend.service.RouteService;
+import pk.backend.service.PriceService;
 import pk.backend.dto.RouteDTO;
+import pk.backend.dto.PriceDTO;
 
 import java.util.List;
 
@@ -14,6 +17,7 @@ import java.util.List;
 public class RouteController {
 
     private final RouteService routeService;
+    private final PriceService priceService;
 
     // ==================== Route Management ====================
 
@@ -44,33 +48,28 @@ public class RouteController {
 
     // ==================== Price Management ====================
 
-    // TODO: Implement get all prices
     @GetMapping("/prices")
-    public void getAllPrices() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public List<Price> getAllPrices() {
+        return priceService.getAllPrices();
     }
 
-    // TODO: Implement get price by ID
     @GetMapping("/prices/{priceId}")
-    public void getPriceById(@PathVariable Integer priceId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public Price getPriceById(@PathVariable Integer priceId) {
+        return priceService.getPriceById(priceId);
     }
 
-    // TODO: Implement create price
     @PostMapping("/prices")
-    public void createPrice() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public Price createPrice(@RequestBody PriceDTO priceDTO) {
+        return priceService.createPrice(priceDTO);
     }
 
-    // TODO: Implement update price
     @PutMapping("/prices/{priceId}")
-    public void updatePrice(@PathVariable Integer priceId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public Price updatePrice(@PathVariable Integer priceId, @RequestBody PriceDTO priceDTO) {
+        return priceService.updatePrice(priceId, priceDTO);
     }
 
-    // TODO: Implement delete price
     @DeleteMapping("/prices/{priceId}")
     public void deletePrice(@PathVariable Integer priceId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        priceService.deletePrice(priceId);
     }
 }
