@@ -15,83 +15,69 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Plus, Trash2, MapPin } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { BusStop, Coordinate } from "@/types/bus";
+import type { Coordinate } from "@/types/bus";
 import { StopMapPicker } from "@/components/StopMapPicker";
 
-interface Route {
-  id: string;
-  number: string;
+interface ApiStop {
+  stopID: number;
   name: string;
-  distance: number;
-  frequency: string;
-  stops: BusStop[];
-  status: string;
+  latitude: number;
+  longitude: number;
 }
 
+interface ApiRoute {
+  routeID: number;
+  name: string;
+  description: string;
+  stops?: ApiStop[];
+}
+
+interface DraftStop {
+  id: string;
+  name: string;
+  coordinate: Coordinate;
+}
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+
+const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers ?? {}),
+    },
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed (${response.status})`);
+  }
+
+  if (response.status === 204) {
+    return null as T;
+  }
+
+  return (await response.json()) as T;
+};
+
 export function RoutesManagementBlock() {
-  const [routes, setRoutes] = useState<Route[]>([
-    {
-      id: "1",
-      number: "1",
-      name: "Kraków - Warszawa",
-      distance: 280,
-      frequency: "Co 2 godziny",
-      stops: [
-        {
-          id: "stop-1",
-          name: "Kraków - Centrum",
-          coordinate: { latitude: 50.0467, longitude: 19.9454 },
-          arrivalTime: "00:00",
-        },
-        {
-          id: "stop-2",
-          name: "Warszawa - Centrum",
-          coordinate: { latitude: 52.2297, longitude: 21.012 },
-          arrivalTime: "04:30",
-        },
-      ],
-      status: "Aktywna",
-    },
-    {
-      id: "2",
-      number: "2",
-      name: "Warszawa - Gdańsk",
-      distance: 340,
-      frequency: "Co 3 godziny",
-      stops: [
-        {
-          id: "stop-w1",
-          name: "Warszawa - Centrum",
-          coordinate: { latitude: 52.2297, longitude: 21.012 },
-          arrivalTime: "00:00",
-        },
-        {
-          id: "stop-g1",
-          name: "Gdańsk - Centrum",
-          coordinate: { latitude: 54.372, longitude: 18.6466 },
-          arrivalTime: "05:00",
-        },
-      ],
-      status: "Aktywna",
-    },
-  ]);
+  const [routes, setRoutes] = useState<ApiRoute[]>([]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState<"info" | "stops">("info");
   const [formData, setFormData] = useState({
-    number: "",
     name: "",
-    distance: "",
-    frequency: "",
-    stops: [] as BusStop[],
-    status: "Aktywna",
+    description: "",
+    stops: [] as DraftStop[],
   });
   const [mapCoordinate, setMapCoordinate] = useState<Coordinate | null>(null);
   const [newStopName, setNewStopName] = useState("");
-  const [newStopTime, setNewStopTime] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const generateId = () => {
     return `stop-${Math.random().toString(36).substr(2, 9)}`;
@@ -99,18 +85,16 @@ export function RoutesManagementBlock() {
 
   const handleAddStop = () => {
     if (mapCoordinate && newStopName) {
-      const newStop: BusStop = {
+      const newStop: DraftStop = {
         id: generateId(),
         name: newStopName,
         coordinate: mapCoordinate,
-        arrivalTime: newStopTime || "00:00",
       };
       setFormData({
         ...formData,
         stops: [...formData.stops, newStop],
       });
       setNewStopName("");
-      setNewStopTime("");
       setMapCoordinate(null);
     }
   };
@@ -122,48 +106,84 @@ export function RoutesManagementBlock() {
     });
   };
 
-  const handleAddRoute = () => {
+  const loadRoutes = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const data = await fetchJson<ApiRoute[]>(`${API_BASE_URL}/api/routes`);
+      setRoutes(data ?? []);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Nie udało się pobrać tras.";
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRoutes();
+  }, [loadRoutes]);
+
+  const handleAddRoute = async () => {
     if (
-      formData.number &&
-      formData.name &&
-      formData.distance &&
-      formData.frequency &&
-      formData.stops.length > 0
+      !formData.name ||
+      !formData.description ||
+      formData.stops.length === 0
     ) {
-      const newRoute: Route = {
-        id: generateId().replace("stop-", "route-"),
-        number: formData.number,
-        name: formData.name,
-        distance: parseFloat(formData.distance),
-        frequency: formData.frequency,
-        stops: formData.stops,
-        status: formData.status,
-      };
-      setRoutes([...routes, newRoute]);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const createdStops = await Promise.all(
+        formData.stops.map((stop) =>
+          fetchJson<ApiStop>(`${API_BASE_URL}/stops`, {
+            method: "POST",
+            body: JSON.stringify({
+              name: stop.name,
+              latitude: stop.coordinate.latitude,
+              longitude: stop.coordinate.longitude,
+            }),
+          }),
+        ),
+      );
+
+      const createdRoute = await fetchJson<ApiRoute>(
+        `${API_BASE_URL}/api/routes/routes`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: formData.name,
+            description: formData.description,
+            stopIds: createdStops.map((stop) => stop.stopID),
+          }),
+        },
+      );
+
+      setRoutes((prevRoutes) => [...prevRoutes, createdRoute]);
       resetForm();
       setIsDialogOpen(false);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Nie udało się dodać trasy.";
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const resetForm = () => {
     setFormData({
-      number: "",
       name: "",
-      distance: "",
-      frequency: "",
+      description: "",
       stops: [],
-      status: "Aktywna",
     });
     setNewStopName("");
-    setNewStopTime("");
     setMapCoordinate(null);
     setSelectedTab("info");
-  };
-
-  const getStatusBadgeColor = (status: string) => {
-    return status === "Aktywna"
-      ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
-      : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300";
   };
 
   return (
@@ -183,27 +203,23 @@ export function RoutesManagementBlock() {
         </div>
       </CardHeader>
       <CardContent className="pt-6">
+        {errorMessage && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200">
+            {errorMessage}
+          </div>
+        )}
         <div className="w-full overflow-x-auto">
           <Table className="w-full">
             <TableHeader>
               <TableRow className="border-b dark:border-slate-700">
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Linia
+                  Nazwa trasy
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Nazwa Trasy
+                  Opis
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Dystans
-                </TableHead>
-                <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Częstotliwość
-                </TableHead>
-                <TableHead className="text-gray-900 dark:text-white font-semibold text-center">
                   Przystanków
-                </TableHead>
-                <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Status
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
                   Akcje
@@ -213,44 +229,40 @@ export function RoutesManagementBlock() {
             <TableBody>
               {routes.map((route) => (
                 <TableRow
-                  key={route.id}
+                  key={route.routeID}
                   className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition"
                 >
-                  <TableCell className="font-bold text-blue-600 dark:text-blue-400 py-4">
-                    {route.number}
-                  </TableCell>
                   <TableCell className="font-semibold text-gray-900 dark:text-white py-4">
                     {route.name}
                   </TableCell>
                   <TableCell className="text-gray-600 dark:text-gray-400 py-4">
-                    {route.distance} km
+                    {route.description}
                   </TableCell>
-                  <TableCell className="text-gray-600 dark:text-gray-400 py-4">
-                    {route.frequency}
-                  </TableCell>
-                  <TableCell className="text-gray-900 dark:text-white font-medium text-center py-4">
-                    {route.stops.length}
-                  </TableCell>
-                  <TableCell className="py-4">
-                    <span
-                      className={`px-2 py-1 rounded text-sm font-medium ${getStatusBadgeColor(
-                        route.status,
-                      )}`}
-                    >
-                      {route.status}
-                    </span>
+                  <TableCell className="text-gray-900 dark:text-white font-medium text-left py-4">
+                    {route.stops?.length ?? 0}
                   </TableCell>
                   <TableCell className="py-4">
                     <Button
                       variant="outline"
                       size="sm"
                       className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
+                      disabled={isLoading}
                     >
                       Edytuj
                     </Button>
                   </TableCell>
                 </TableRow>
               ))}
+              {!isLoading && routes.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="py-8 text-center text-gray-500 dark:text-gray-400"
+                  >
+                    Brak tras do wyświetlenia
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
@@ -286,20 +298,6 @@ export function RoutesManagementBlock() {
             <TabsContent value="info" className="space-y-4 py-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Numer Linii
-                </label>
-                <input
-                  type="text"
-                  value={formData.number}
-                  onChange={(e) =>
-                    setFormData({ ...formData, number: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                  placeholder="np. 1"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Nazwa Trasy
                 </label>
                 <input
@@ -312,50 +310,19 @@ export function RoutesManagementBlock() {
                   placeholder="np. Kraków - Warszawa"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Dystans (km)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.distance}
-                    onChange={(e) =>
-                      setFormData({ ...formData, distance: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                    placeholder="np. 280"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Częstotliwość
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.frequency}
-                    onChange={(e) =>
-                      setFormData({ ...formData, frequency: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                    placeholder="np. Co 2 godziny"
-                  />
-                </div>
-              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Status
+                  Opis
                 </label>
-                <select
-                  value={formData.status}
+                <textarea
+                  value={formData.description}
                   onChange={(e) =>
-                    setFormData({ ...formData, status: e.target.value })
+                    setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                >
-                  <option value="Aktywna">Aktywna</option>
-                  <option value="Nieaktywna">Nieaktywna</option>
-                </select>
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                  placeholder="np. Trasa dalekobieżna przez główne miasta"
+                />
               </div>
             </TabsContent>
 
@@ -397,17 +364,6 @@ export function RoutesManagementBlock() {
                           ? `${mapCoordinate.latitude.toFixed(4)}, ${mapCoordinate.longitude.toFixed(4)}`
                           : "Kliknij na mapę"}
                       </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Czas przyjazdu (HH:MM)
-                      </label>
-                      <input
-                        type="time"
-                        value={newStopTime}
-                        onChange={(e) => setNewStopTime(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                      />
                     </div>
                   </div>
                 </div>
@@ -454,9 +410,6 @@ export function RoutesManagementBlock() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 ml-2">
-                          <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                            {stop.arrivalTime}
-                          </span>
                           <button
                             onClick={() => handleRemoveStop(stop.id)}
                             className="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition"
@@ -486,15 +439,13 @@ export function RoutesManagementBlock() {
             <Button
               onClick={handleAddRoute}
               disabled={
-                !formData.number ||
                 !formData.name ||
-                !formData.distance ||
-                !formData.frequency ||
+                !formData.description ||
                 formData.stops.length === 0
               }
               className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Dodaj trasę
+              {isLoading ? "Zapisywanie..." : "Dodaj trasę"}
             </Button>
           </DialogFooter>
         </DialogContent>
