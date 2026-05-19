@@ -1,37 +1,43 @@
 package pk.backend.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import pk.backend.entity.user.Employee;
+import pk.backend.service.EmployeeService;
+import pk.backend.dto.EmployeeDTO;
+
+import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/drivers")
 public class DriverController {
 
-    // TODO: Implement get all drivers
-    @GetMapping("/drivers")
-    public void getAllDrivers() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    private final EmployeeService employeeService;
+    private static final String POSITION = "Driver";
+
+    @GetMapping
+    public List<Employee> getAllDrivers() {
+        return employeeService.getAllEmployeesByPosition(POSITION);
     }
 
-    // TODO: Implement get driver by ID
-    @GetMapping("/drivers/{driverId}")
-    public void getDriverById(@PathVariable Integer driverId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    @GetMapping("/{driverId}")
+    public Employee getDriverById(@PathVariable Integer driverId) {
+        return employeeService.getEmployeeByIdAndPosition(driverId, POSITION);
     }
 
-    // TODO: Implement create driver
-    @PostMapping("/drivers")
-    public void createDriver() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    @PostMapping
+    public Employee createDriver(@RequestBody EmployeeDTO employeeDTO) {
+        return employeeService.createEmployee(employeeDTO, POSITION);
     }
 
-    // TODO: Implement update driver
-    @PutMapping("/drivers/{driverId}")
-    public void updateDriver(@PathVariable Integer driverId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    @PutMapping("/{driverId}")
+    public Employee updateDriver(@PathVariable Integer driverId, @RequestBody EmployeeDTO employeeDTO) {
+        return employeeService.updateEmployee(driverId, employeeDTO, POSITION);
     }
 
-    // TODO: Implement delete driver
-    @DeleteMapping("/drivers/{driverId}")
+    @DeleteMapping("/{driverId}")
     public void deleteDriver(@PathVariable Integer driverId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        employeeService.deleteEmployee(driverId, POSITION);
     }
 }

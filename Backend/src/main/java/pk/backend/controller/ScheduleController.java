@@ -1,40 +1,44 @@
 package pk.backend.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import pk.backend.entity.user.ScheduleEntry;
+import pk.backend.service.ScheduleService;
+import pk.backend.dto.ScheduleEntryDTO;
+
+import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/schedules")
 public class ScheduleController {
 
+    private final ScheduleService scheduleService;
 
     // ==================== Schedule Management ====================
 
-    // TODO: Implement get all schedules
-    @GetMapping("/schedules")
-    public void getAllSchedules() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    @GetMapping
+    public List<ScheduleEntry> getAllSchedules() {
+        return scheduleService.getAllSchedules();
     }
 
-    // TODO: Implement get schedule by ID
-    @GetMapping("/schedules/{scheduleId}")
-    public void getScheduleById(@PathVariable Integer scheduleId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    @GetMapping("/{scheduleId}")
+    public ScheduleEntry getScheduleById(@PathVariable Integer scheduleId) {
+        return scheduleService.getScheduleById(scheduleId);
     }
 
-    // TODO: Implement create schedule
-    @PostMapping("/schedules")
-    public void createSchedule() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    @PostMapping
+    public ScheduleEntry createSchedule(@RequestBody ScheduleEntryDTO scheduleEntryDTO) {
+        return scheduleService.createSchedule(scheduleEntryDTO);
     }
 
-    // TODO: Implement update schedule
-    @PutMapping("/schedules/{scheduleId}")
-    public void updateSchedule(@PathVariable Integer scheduleId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    @PutMapping("/{scheduleId}")
+    public ScheduleEntry updateSchedule(@PathVariable Integer scheduleId, @RequestBody ScheduleEntryDTO scheduleEntryDTO) {
+        return scheduleService.updateSchedule(scheduleId, scheduleEntryDTO);
     }
 
-    // TODO: Implement delete schedule
-    @DeleteMapping("/schedules/{scheduleId}")
+    @DeleteMapping("/{scheduleId}")
     public void deleteSchedule(@PathVariable Integer scheduleId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        scheduleService.deleteSchedule(scheduleId);
     }
 }

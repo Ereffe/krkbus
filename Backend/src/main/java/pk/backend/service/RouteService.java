@@ -13,6 +13,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.ArrayList;
 
 @RequiredArgsConstructor
 @Service
@@ -51,15 +52,27 @@ public class RouteService {
         return routeRepository.save(route);
     }
 
-    private Set<Stop> fetchAndValidateStops(List<Integer> stopIds) {
+    private List<Stop> fetchAndValidateStops(List<Integer> stopIds) {
         if (stopIds == null || stopIds.isEmpty()) {
-            return new HashSet<>();
+            return new ArrayList<>();
         }
-        List<Stop> stops = stopRepository.findAllById(stopIds);
-        if (stops.size() != stopIds.size()) {
+
+        Set<Integer> uniqueIds = new HashSet<>(stopIds);
+        List<Stop> uniqueStops = stopRepository.findAllById(uniqueIds);
+
+        if (uniqueStops.size() != uniqueIds.size()) {
             throw new IllegalArgumentException("One or more stops provided do not exist.");
         }
-        return new HashSet<>(stops);
+
+        java.util.Map<Integer, Stop> stopMap = uniqueStops.stream()
+                .collect(java.util.stream.Collectors.toMap(Stop::getStopID, stop -> stop));
+
+        List<Stop> orderedStops = new ArrayList<>();
+        for (Integer id : stopIds) {
+            orderedStops.add(stopMap.get(id));
+        }
+
+        return orderedStops;
     }
 
     @Transactional

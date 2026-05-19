@@ -1,37 +1,42 @@
 package pk.backend.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import pk.backend.entity.Reward;
+import pk.backend.service.RewardService;
+import pk.backend.dto.RewardDTO;
+
+import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/rewards")
 public class RewardController {
 
-    // TODO: Implement get all rewards
-    @GetMapping("/rewards")
-    public void getAllRewards() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    private final RewardService rewardService;
+
+    @GetMapping
+    public List<Reward> getAllRewards() {
+        return rewardService.getAllRewards();
     }
 
-    // TODO: Implement get reward by ID
-    @GetMapping("/rewards/{rewardId}")
-    public void getRewardById(@PathVariable Integer rewardId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    @GetMapping("/{rewardId}")
+    public Reward getRewardById(@PathVariable Integer rewardId) {
+        return rewardService.getRewardById(rewardId);
     }
 
-    // TODO: Implement create reward
-    @PostMapping("/rewards")
-    public void createReward() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    @PostMapping
+    public Reward createReward(@RequestBody RewardDTO rewardDTO) {
+        return rewardService.createReward(rewardDTO);
     }
 
-    // TODO: Implement update reward
-    @PutMapping("/rewards/{rewardId}")
-    public void updateReward(@PathVariable Integer rewardId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    @PutMapping("/{rewardId}")
+    public Reward updateReward(@PathVariable Integer rewardId, @RequestBody RewardDTO rewardDTO) {
+        return rewardService.updateReward(rewardId, rewardDTO);
     }
 
-    // TODO: Implement delete reward
-    @DeleteMapping("/rewards/{rewardId}")
+    @DeleteMapping("/{rewardId}")
     public void deleteReward(@PathVariable Integer rewardId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        rewardService.deleteReward(rewardId);
     }
 }
