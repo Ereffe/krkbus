@@ -18,7 +18,10 @@ public class Reservation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer reservationID;
     private Integer seatCount;
-    private String status;
+    
+    @Enumerated(EnumType.STRING)
+    private ReservationStatus status;
+    
     private LocalDateTime createdAt;
     private LocalDateTime cancelledAt;
     private Float totalPrice;
@@ -27,10 +30,11 @@ public class Reservation {
     @JoinColumn(name = "client_id")
     private Client client;
 
-    @OneToMany(mappedBy = "reservation")
+    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL)
     private Set<Ticket> tickets;
 
     @ManyToOne
     @JoinColumn(name = "trip_id")
     private Trip trip;
 }
+

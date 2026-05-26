@@ -26,22 +26,22 @@ public class RouteController {
         return routeService.getAllRoutes();
     }
 
-    @GetMapping("/routes/{routeId}")
+    @GetMapping("/{routeId}")
     public Route getRouteById(@PathVariable Integer routeId) {
         return routeService.getRouteById(routeId);
     }
 
-    @PostMapping("/routes")
+    @PostMapping("")
     public Route createRoute(@RequestBody RouteDTO routeDTO) {
         return routeService.createRoute(routeDTO);
     }
 
-    @PutMapping("/routes/{routeId}")
+    @PutMapping("/{routeId}")
     public Route updateRoute(@PathVariable Integer routeId, @RequestBody RouteDTO routeDTO) {
         return routeService.updateRoute(routeId, routeDTO);
     }
 
-    @DeleteMapping("/routes/{routeId}")
+    @DeleteMapping("/{routeId}")
     public void deleteRoute(@PathVariable Integer routeId) {
         routeService.deleteRoute(routeId);
     }
