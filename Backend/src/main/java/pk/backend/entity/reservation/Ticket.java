@@ -14,9 +14,12 @@ public class Ticket {
     private Integer ticketID;
     private Integer seatNumber;
     private Float price;
-    private String status;
+    
+    @Enumerated(EnumType.STRING)
+    private ReservationStatus status;
 
     @ManyToOne
     @JoinColumn(name = "reservation_id")
     private Reservation reservation;
 }
+
