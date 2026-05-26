@@ -1,9 +1,7 @@
 package pk.backend.entity.user;
 
 import lombok.*;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.*;
 import pk.backend.entity.reservation.Reservation;
 import pk.backend.entity.Reward;
 
@@ -28,6 +26,12 @@ public class Client extends User {
     @OneToMany(mappedBy = "client")
     private Set<Reservation> reservations;
 
-    @OneToMany(mappedBy = "client")
+    @ManyToMany
+    @JoinTable(
+        name = "client_reward",
+        joinColumns = @JoinColumn(name = "client_id"),
+        inverseJoinColumns = @JoinColumn(name = "reward_id")
+    )
     private Set<Reward> rewards;
 }
+

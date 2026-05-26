@@ -1,17 +1,20 @@
 package pk.backend.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class RewardDTO {
+    private Integer id;
     private String name;
-    private Integer pointCost;
+    private String description;
+    private Integer pointsCost; // Matching frontend naming for easier mapping if possible, or sticking to diagram pointCost
     private Integer availableQuantity;
-    private Integer clientId;
+    // Mocked fields for frontend compatibility
+    private String icon;
+    private String category;
+    private String validUntil;
 }
+

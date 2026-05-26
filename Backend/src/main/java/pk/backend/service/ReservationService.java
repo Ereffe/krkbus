@@ -9,10 +9,7 @@ import pk.backend.entity.reservation.ReservationStatus;
 import pk.backend.entity.reservation.Ticket;
 import pk.backend.entity.trip.Trip;
 import pk.backend.entity.user.Client;
-import pk.backend.repository.ClientRepository;
-import pk.backend.repository.ReservationRepository;
-import pk.backend.repository.TicketRepository;
-import pk.backend.repository.TripRepository;
+import pk.backend.repository.*;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -119,7 +116,7 @@ public class ReservationService {
             }
         }
 
-        // Refund loyalty points (optional, but logical)
+        // Refund loyalty points
         Client client = reservation.getClient();
         int pointsToDeduct = (int) (reservation.getTotalPrice() / 10);
         int currentPoints = client.getLoyaltyPoints() != null ? client.getLoyaltyPoints() : 0;
@@ -142,3 +139,4 @@ public class ReservationService {
         return dto;
     }
 }
+
