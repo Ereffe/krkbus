@@ -14,7 +14,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/owner")
+@RequestMapping("/api/owner/secretary")
 public class SecretaryWorkerController {
 
     private final EmployeeService employeeService;
@@ -22,32 +22,32 @@ public class SecretaryWorkerController {
 
     // ==================== Secretary Worker Management ====================
 
-    @GetMapping("/workers/secretary")
+    @GetMapping
     public List<Employee> getAllSecretaryWorkers() {
         return employeeService.getAllEmployeesByPosition(POSITION);
     }
 
-    @GetMapping("/workers/secretary/{workerId}")
+    @GetMapping("/{workerId}")
     public Employee getSecretaryWorkerById(@PathVariable Integer workerId) {
         return employeeService.getEmployeeByIdAndPosition(workerId, POSITION);
     }
 
-    @PostMapping("/workers/secretary")
+    @PostMapping
     public Employee createSecretaryWorker(@RequestBody EmployeeDTO employeeDTO) {
         return employeeService.createEmployee(employeeDTO, POSITION);
     }
 
-    @PutMapping("/workers/secretary/{workerId}")
+    @PutMapping("/{workerId}")
     public Employee updateSecretaryWorker(@PathVariable Integer workerId, @RequestBody EmployeeDTO employeeDTO) {
         return employeeService.updateEmployee(workerId, employeeDTO, POSITION);
     }
 
-    @DeleteMapping("/workers/secretary/{workerId}")
+    @DeleteMapping("/{workerId}")
     public void deleteSecretaryWorker(@PathVariable Integer workerId) {
         employeeService.deleteEmployee(workerId, POSITION);
     }
 
-    @PutMapping("/workers/secretary/{workerId}/schedule")
+    @PutMapping("/{workerId}/schedule")
     public void updateSecretaryWorkerSchedule(@PathVariable Integer workerId) {
         // Assume this calls ScheduleService or just acknowledge implementation
         // Real implementation would link to ScheduleEntry creation/updates
