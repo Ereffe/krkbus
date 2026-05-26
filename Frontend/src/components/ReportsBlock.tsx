@@ -11,10 +11,10 @@ import { Button } from "@/components/ui/button";
 import { useCallback, useEffect, useState } from "react";
 
 interface ApiReport {
-  id: number;
+  reportID: number;
   title: string;
-  date: string;
-  status: string;
+  content: string;
+  generatedAt: string;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -89,10 +89,10 @@ export function ReportsBlock() {
                   Tytuł
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Data
+                  Wygenerowano
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Status
+                  Podgląd
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
                   Akcje
@@ -102,25 +102,19 @@ export function ReportsBlock() {
             <TableBody>
               {reports.map((report) => (
                 <TableRow
-                  key={report.id}
+                  key={report.reportID}
                   className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition"
                 >
                   <TableCell className="font-semibold text-gray-900 dark:text-white py-4">
                     {report.title}
                   </TableCell>
                   <TableCell className="text-gray-600 dark:text-gray-400 py-4">
-                    {report.date}
+                    {new Date(report.generatedAt).toLocaleDateString("pl-PL")}
                   </TableCell>
-                  <TableCell className="py-4">
-                    <span
-                      className={`px-2 py-1 rounded text-sm font-medium ${
-                        report.status === "Gotowy"
-                          ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
-                          : "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400"
-                      }`}
-                    >
-                      {report.status}
-                    </span>
+                  <TableCell className="text-gray-600 dark:text-gray-400 py-4">
+                    {report.content.length > 80
+                      ? `${report.content.slice(0, 80)}...`
+                      : report.content}
                   </TableCell>
                   <TableCell className="py-4">
                     <Button

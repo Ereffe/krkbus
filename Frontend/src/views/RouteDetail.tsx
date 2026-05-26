@@ -19,6 +19,15 @@ interface ApiRoute {
   stops?: ApiStop[];
 }
 
+interface ApiPrice {
+  priceID: number;
+  normalTicket: number;
+  studentTicket: number;
+  seniorTicket: number;
+  dayPass: number;
+  route?: { routeID: number };
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
@@ -73,7 +82,10 @@ const calculateDistanceKm = (stops: BusStop[]) => {
   return Math.round(total * 10) / 10;
 };
 
-const mapApiRoute = (route: ApiRoute): BusRoute => {
+const mapApiRoute = (
+  route: ApiRoute,
+  priceByRouteId: Map<number, ApiPrice>,
+): BusRoute => {
   const stops: BusStop[] = (route.stops ?? []).map((stop) => ({
     id: stop.stopID.toString(),
     name: stop.name,
@@ -89,6 +101,8 @@ const mapApiRoute = (route: ApiRoute): BusRoute => {
   };
   const endStop = stops[stops.length - 1] ?? startStop;
 
+  const price = priceByRouteId.get(route.routeID);
+
   return {
     id: route.routeID.toString(),
     name: route.name,
@@ -99,10 +113,10 @@ const mapApiRoute = (route: ApiRoute): BusRoute => {
     stops,
     schedule: [],
     pricing: {
-      studentTicket: 0,
-      normalTicket: 0,
-      seniorTicket: 0,
-      dayPass: 0,
+      studentTicket: price?.studentTicket ?? 0,
+      normalTicket: price?.normalTicket ?? 0,
+      seniorTicket: price?.seniorTicket ?? 0,
+      dayPass: price?.dayPass ?? 0,
     },
     frequency: "Brak danych",
     distance: calculateDistanceKm(stops),
@@ -128,10 +142,17 @@ export function RouteDetail() {
     setErrorMessage(null);
 
     try {
-      const data = await fetchJson<ApiRoute>(
-        `${API_BASE_URL}/api/routes/routes/${id}`,
-      );
-      setRoute(mapApiRoute(data));
+      const [routeData, pricesData] = await Promise.all([
+        fetchJson<ApiRoute>(`${API_BASE_URL}/api/routes/routes/${id}`),
+        fetchJson<ApiPrice[]>(`${API_BASE_URL}/api/routes/prices`),
+      ]);
+      const priceByRouteId = new Map<number, ApiPrice>();
+      (pricesData ?? []).forEach((price) => {
+        if (price.route?.routeID) {
+          priceByRouteId.set(price.route.routeID, price);
+        }
+      });
+      setRoute(mapApiRoute(routeData, priceByRouteId));
     } catch (error) {
       const message =
         error instanceof Error
