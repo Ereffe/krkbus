@@ -10,31 +10,32 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/stops")
 public class StopController {
 
     private final StopService stopService;
 
-    @GetMapping("/stops")
+    @GetMapping
     public List<Stop> getAllStops() {
         return stopService.getAllStops();
     }
 
-    @GetMapping("/stops/{stopId}")
+    @GetMapping("/{stopId}")
     public Stop getStopById(@PathVariable Integer stopId) {
         return stopService.getStopById(stopId);
     }
 
-    @PostMapping("/stops")
+    @PostMapping
     public Stop createStop(@RequestBody StopDTO stopDTO) {
         return stopService.createStop(stopDTO);
     }
 
-    @PutMapping("/stops/{stopId}")
+    @PutMapping("/{stopId}")
     public Stop updateStop(@PathVariable Integer stopId, @RequestBody StopDTO stopDTO) {
         return stopService.updateStop(stopId, stopDTO);
     }
 
-    @DeleteMapping("/stops/{stopId}")
+    @DeleteMapping("/{stopId}")
     public void deleteStop(@PathVariable Integer stopId) {
         stopService.deleteStop(stopId);
     }

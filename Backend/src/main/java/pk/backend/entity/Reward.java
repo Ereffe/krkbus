@@ -3,6 +3,7 @@ package pk.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import pk.backend.entity.user.Client;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -15,9 +16,10 @@ public class Reward {
     private Integer rewardID;
     private String name;
     private Integer pointCost;
+    private String description;
     private Integer availableQuantity;
 
-    @ManyToOne
-    @JoinColumn(name = "client_id")
-    private Client client;
+    @ManyToMany(mappedBy = "rewards")
+    private Set<Client> clients;
 }
+

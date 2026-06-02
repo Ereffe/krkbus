@@ -14,34 +14,34 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/worker")
+@RequestMapping("/api/reports")
 public class ReportController {
 
     private final ReportService reportService;
 
     // ==================== Report Management ====================
 
-    @GetMapping("/reports")
+    @GetMapping
     public List<Report> getAllReports() {
         return reportService.getAllReports();
     }
 
-    @GetMapping("/reports/{reportId}")
+    @GetMapping("/{reportId}")
     public Report getReportById(@PathVariable Integer reportId) {
         return reportService.getReportById(reportId);
     }
 
-    @PostMapping("/reports")
+    @PostMapping
     public Report createReport(@RequestBody ReportDTO reportDTO) {
         return reportService.createReport(reportDTO);
     }
 
-    @PutMapping("/reports/{reportId}")
+    @PutMapping("/{reportId}")
     public Report updateReport(@PathVariable Integer reportId, @RequestBody ReportDTO reportDTO) {
         return reportService.updateReport(reportId, reportDTO);
     }
 
-    @DeleteMapping("/reports/{reportId}")
+    @DeleteMapping("/{reportId}")
     public void deleteReport(@PathVariable Integer reportId) {
         reportService.deleteReport(reportId);
     }

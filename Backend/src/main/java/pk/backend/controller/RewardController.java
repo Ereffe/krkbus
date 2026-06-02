@@ -1,42 +1,58 @@
 package pk.backend.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pk.backend.entity.Reward;
-import pk.backend.service.RewardService;
 import pk.backend.dto.RewardDTO;
+import pk.backend.dto.UserPointsDTO;
+import pk.backend.service.RewardService;
 
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/rewards")
+@CrossOrigin(origins = "*")
 public class RewardController {
 
     private final RewardService rewardService;
 
     @GetMapping
-    public List<Reward> getAllRewards() {
-        return rewardService.getAllRewards();
+    public ResponseEntity<List<RewardDTO>> getAllRewards() {
+        return ResponseEntity.ok(rewardService.getAllRewards());
     }
 
     @GetMapping("/{rewardId}")
-    public Reward getRewardById(@PathVariable Integer rewardId) {
-        return rewardService.getRewardById(rewardId);
+    public ResponseEntity<RewardDTO> getRewardById(@PathVariable Integer rewardId) {
+        return ResponseEntity.ok(rewardService.getRewardById(rewardId));
     }
 
     @PostMapping
-    public Reward createReward(@RequestBody RewardDTO rewardDTO) {
-        return rewardService.createReward(rewardDTO);
+    public ResponseEntity<RewardDTO> createReward(@RequestBody RewardDTO rewardDTO) {
+        return ResponseEntity.ok(rewardService.createReward(rewardDTO));
     }
 
     @PutMapping("/{rewardId}")
-    public Reward updateReward(@PathVariable Integer rewardId, @RequestBody RewardDTO rewardDTO) {
-        return rewardService.updateReward(rewardId, rewardDTO);
+    public ResponseEntity<RewardDTO> updateReward(@PathVariable Integer rewardId, @RequestBody RewardDTO rewardDTO) {
+        return ResponseEntity.ok(rewardService.updateReward(rewardId, rewardDTO));
     }
 
     @DeleteMapping("/{rewardId}")
-    public void deleteReward(@PathVariable Integer rewardId) {
+    public ResponseEntity<Void> deleteReward(@PathVariable Integer rewardId) {
         rewardService.deleteReward(rewardId);
+        return ResponseEntity.ok().build();
+    }
+
+    // ==================== User Points & History ====================
+
+    @GetMapping("/user/{clientId}/points")
+    public ResponseEntity<UserPointsDTO> getUserPoints(@PathVariable Integer clientId) {
+        return ResponseEntity.ok(rewardService.getUserPoints(clientId));
+    }
+
+    @PostMapping("/user/{clientId}/redeem/{rewardId}")
+    public ResponseEntity<UserPointsDTO> redeemReward(@PathVariable Integer clientId, @PathVariable Integer rewardId) {
+        return ResponseEntity.ok(rewardService.redeemReward(clientId, rewardId));
     }
 }
+
