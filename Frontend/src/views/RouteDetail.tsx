@@ -143,8 +143,8 @@ export function RouteDetail() {
 
     try {
       const [routeData, pricesData] = await Promise.all([
-        fetchJson<ApiRoute>(`${API_BASE_URL}/api/routes/routes/${id}`),
-        fetchJson<ApiPrice[]>(`${API_BASE_URL}/api/routes/prices`),
+        fetchJson<ApiRoute>(`${API_BASE_URL}/api/routes/${id}`),
+        fetchJson<ApiPrice[]>(`${API_BASE_URL}/api/prices`),
       ]);
       const priceByRouteId = new Map<number, ApiPrice>();
       (pricesData ?? []).forEach((price) => {

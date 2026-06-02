@@ -98,7 +98,7 @@ export function PricingBlock() {
     try {
       const [routesData, pricesData] = await Promise.all([
         fetchJson<ApiRoute[]>(`${API_BASE_URL}/api/routes`),
-        fetchJson<ApiPrice[]>(`${API_BASE_URL}/api/routes/prices`),
+        fetchJson<ApiPrice[]>(`${API_BASE_URL}/api/prices`),
       ]);
 
       setRoutes(routesData ?? []);
@@ -163,7 +163,7 @@ export function PricingBlock() {
           },
         );
       } else {
-        await fetchJson<ApiPrice>(`${API_BASE_URL}/api/routes/prices`, {
+        await fetchJson<ApiPrice>(`${API_BASE_URL}/api/prices`, {
           method: "POST",
           body: JSON.stringify(payload),
         });

@@ -1,4 +1,5 @@
-import { MapContainer, TileLayer, Popup, Marker, Polyline } from "react-leaflet";
+import { MapContainer, TileLayer, Popup, Marker, Polyline, useMap } from "react-leaflet";
+import { useEffect } from "react";
 import type { BusRoute } from "@/types/bus";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -51,6 +52,17 @@ const endIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
+function FitBounds({ coords }: { coords: [number, number][] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (coords.length > 0) {
+      const bounds = L.latLngBounds(coords);
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [map, coords]);
+  return null;
+}
+
 export function RouteMap({ route }: RouteMapProps) {
   // Calculate map center
   const centerLat =
@@ -76,6 +88,7 @@ export function RouteMap({ route }: RouteMapProps) {
         scrollWheelZoom={true}
         className="w-full h-full"
       >
+        <FitBounds coords={polylineCoords as [number, number][]} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

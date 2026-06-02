@@ -8,7 +8,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useCallback, useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 
 interface ApiReport {
   reportID: number;
@@ -45,12 +55,16 @@ export function ReportsBlock() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newContent, setNewContent] = useState("");
+
   const loadReports = useCallback(async () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
       const data = await fetchJson<ApiReport[]>(
-        `${API_BASE_URL}/api/worker/reports`,
+        `${API_BASE_URL}/api/reports`,
       );
       setReports(data ?? []);
     } catch (error) {
@@ -68,12 +82,62 @@ export function ReportsBlock() {
     loadReports();
   }, [loadReports]);
 
+  const handleGenerateReport = async () => {
+    if (!newTitle.trim() || !newContent.trim()) {
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const createdReport = await fetchJson<ApiReport>(`${API_BASE_URL}/api/reports`, {
+        method: "POST",
+        body: JSON.stringify({
+          title: newTitle,
+          content: newContent,
+          generatedAt: new Date().toISOString(),
+        }),
+      });
+
+      setReports((prev) => [...prev, createdReport]);
+      setNewTitle("");
+      setNewContent("");
+      setIsDialogOpen(false);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Nie udało się wygenerować raportu.";
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDownloadReport = (report: ApiReport) => {
+    const fileContent = `Tytuł: ${report.title}\nWygenerowano: ${new Date(report.generatedAt).toLocaleString("pl-PL")}\n\nTreść:\n${report.content}`;
+    const blob = new Blob([fileContent], { type: "text/plain;charset=utf-8" });
+    const element = document.createElement("a");
+    element.href = URL.createObjectURL(blob);
+    element.download = `raport_${report.reportID || "nowy"}.txt`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
   return (
     <Card className="shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
-      <CardHeader className="border-b dark:border-slate-700 pb-6">
+      <CardHeader className="border-b dark:border-slate-700 pb-6 flex flex-row items-center justify-between">
         <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
           Przeglądaj Raporty
         </CardTitle>
+        <Button
+          onClick={() => setIsDialogOpen(true)}
+          className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Generuj raport
+        </Button>
       </CardHeader>
       <CardContent className="pt-6">
         {errorMessage && (
@@ -120,6 +184,7 @@ export function ReportsBlock() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => handleDownloadReport(report)}
                       className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
                     >
                       Pobierz
@@ -141,6 +206,64 @@ export function ReportsBlock() {
           </Table>
         </div>
       </CardContent>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700 max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 dark:text-white">
+              Wygeneruj Nowy Raport
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Tytuł
+              </label>
+              <Input
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="np. Raport miesięczny"
+                className="w-full bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Treść
+              </label>
+              <Textarea
+                value={newContent}
+                onChange={(e) => setNewContent(e.target.value)}
+                rows={5}
+                placeholder="Treść raportu..."
+                className="w-full bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="pt-4 border-t dark:border-slate-700">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setNewTitle("");
+                setNewContent("");
+                setIsDialogOpen(false);
+              }}
+              className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
+              disabled={isLoading}
+            >
+              Anuluj
+            </Button>
+            <Button
+              onClick={handleGenerateReport}
+              disabled={isLoading || !newTitle.trim() || !newContent.trim()}
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? "Generowanie..." : "Generuj"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
