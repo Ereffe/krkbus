@@ -74,7 +74,7 @@ export function SecretaryScheduleBlock() {
     setErrorMessage(null);
     try {
       const data = await fetchJson<ApiSecretary[]>(
-        `${API_BASE_URL}/api/owner/workers/secretary`,
+        `${API_BASE_URL}/api/owner/secretary`,
       );
       setSecretaries(data ?? []);
     } catch (error) {
@@ -93,22 +93,18 @@ export function SecretaryScheduleBlock() {
   }, [loadSecretaries]);
 
   const handleAddSecretary = async () => {
-    if (
-      formData.name &&
-      formData.email &&
-      formData.schedule &&
-      formData.phone
-    ) {
+    if (formData.name && formData.email && formData.schedule && formData.phone) {
       setIsLoading(true);
       setErrorMessage(null);
       try {
         const created = await fetchJson<ApiSecretary>(
-          `${API_BASE_URL}/api/owner/workers/secretary`,
+          `${API_BASE_URL}/api/owner/secretary`,
           {
             method: "POST",
             body: JSON.stringify({ position: "Secretary" }),
           },
         );
+
         setSecretaries((prev) => [...prev, created]);
         setSecretaryDetails((prev) => ({
           ...prev,
@@ -119,6 +115,7 @@ export function SecretaryScheduleBlock() {
             phone: formData.phone,
           },
         }));
+
         setFormData({ name: "", email: "", schedule: "", phone: "" });
         setIsDialogOpen(false);
       } catch (error) {
@@ -149,12 +146,14 @@ export function SecretaryScheduleBlock() {
           </Button>
         </div>
       </CardHeader>
+
       <CardContent className="pt-6">
         {errorMessage && (
           <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200">
             {errorMessage}
           </div>
         )}
+
         <div className="w-full overflow-x-auto">
           <Table className="w-full">
             <TableHeader>
@@ -176,6 +175,7 @@ export function SecretaryScheduleBlock() {
                 </TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
               {secretaries.map((secretary) => {
                 const details =
@@ -209,6 +209,7 @@ export function SecretaryScheduleBlock() {
                   </TableRow>
                 );
               })}
+
               {!isLoading && secretaries.length === 0 && (
                 <TableRow>
                   <TableCell
@@ -231,6 +232,7 @@ export function SecretaryScheduleBlock() {
               Dodaj Nową Sekretarkę
             </DialogTitle>
           </DialogHeader>
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -246,6 +248,7 @@ export function SecretaryScheduleBlock() {
                 placeholder="np. Maria Kowalska"
               />
             </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email
@@ -260,6 +263,7 @@ export function SecretaryScheduleBlock() {
                 placeholder="np. maria@example.com"
               />
             </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Grafik Pracy
@@ -274,6 +278,7 @@ export function SecretaryScheduleBlock() {
                 placeholder="np. Poniedziałek - Piątek 8:00-16:00"
               />
             </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Telefon
@@ -289,6 +294,7 @@ export function SecretaryScheduleBlock() {
               />
             </div>
           </div>
+
           <DialogFooter>
             <Button
               variant="outline"
@@ -310,3 +316,4 @@ export function SecretaryScheduleBlock() {
     </Card>
   );
 }
+

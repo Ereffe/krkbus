@@ -1,0 +1,17 @@
+### Create ADMIN user (KrkBus)
+### Use in VSCode REST Client extension or copy to curl.
+
+POST http://localhost:8080/api/admin/users/employee
+Content-Type: application/json
+
+{
+  "login": "admin1",
+  "password": "AdminPass123!",
+  "firstName": "Admin",
+  "lastName": "User",
+  "email": "admin1@example.com",
+  "phone": "+48123123123",
+  "role": "ADMIN",
+  "position": "Właściciel"
+}
+

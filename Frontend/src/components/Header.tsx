@@ -1,29 +1,38 @@
-import { Link, useLocation } from "react-router-dom";
-import { Bus, Zap, Moon, Sun } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Bus, Zap, Moon, Sun, LogOut, User as UserIcon } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
 
 export function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
-    <header className="bg-white dark:bg-slate-900 shadow-md dark:shadow-lg dark:border-b dark:border-slate-700 transition-colors">
+    <header className="bg-white dark:bg-slate-900 shadow-md dark:shadow-lg dark:border-b dark:border-slate-700 transition-colors sticky top-0 z-50">
       <nav className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <Bus className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-          <span className="text-2xl font-bold text-gray-900 dark:text-white">
+          <span className="text-2xl font-bold text-gray-900 dark:text-white hidden sm:block">
             KrkBus
           </span>
         </Link>
 
         {/* Navigation Links */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-4 sm:gap-8 overflow-x-auto flex-1 justify-center px-4">
           <Link
             to="/"
-            className={`text-lg font-medium transition-colors ${
+            className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
               isActive("/")
                 ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
                 : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
@@ -31,51 +40,63 @@ export function Header() {
           >
             Trasy
           </Link>
-          <Link
-            to="/points"
-            className={`flex items-center gap-2 text-lg font-medium transition-colors ${
-              isActive("/points")
-                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-            }`}
-          >
-            <Zap className="w-5 h-5" />
-            Punkty
-          </Link>
-          <Link
-            to="/admin"
-            className={`text-lg font-medium transition-colors ${
-              isActive("/admin")
-                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-            }`}
-          >
-            Panel Sekretariatu
-          </Link>
-          <Link
-            to="/driver"
-            className={`text-lg font-medium transition-colors ${
-              isActive("/driver")
-                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-            }`}
-          >
-            Panel Kierowcy
-          </Link>
-          <Link
-            to="/owner"
-            className={`text-lg font-medium transition-colors ${
-              isActive("/owner")
-                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-            }`}
-          >
-            Panel Właściciela
-          </Link>
+          
+          {isAuthenticated && user?.role === "USER" && (
+            <Link
+              to="/points"
+              className={`flex items-center gap-2 text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
+                isActive("/points")
+                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                  : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+              }`}
+            >
+              <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
+              Punkty
+            </Link>
+          )}
+
+          {isAuthenticated && (user?.role === "ADMIN" || user?.role === "SECRETARY") && (
+            <Link
+              to="/admin"
+              className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
+                isActive("/admin")
+                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                  : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+              }`}
+            >
+              Panel Sekretariatu
+            </Link>
+          )}
+
+          {isAuthenticated && user?.role === "DRIVER" && (
+            <Link
+              to="/driver"
+              className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
+                isActive("/driver")
+                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                  : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+              }`}
+            >
+              Panel Kierowcy
+            </Link>
+          )}
+
+          {isAuthenticated && (user?.role === "OWNER" || user?.role === "ADMIN") && (
+            <Link
+              to="/owner"
+              className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
+                isActive("/owner")
+                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                  : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+              }`}
+            >
+              Panel Właściciela
+            </Link>
+          )}
         </div>
 
         {/* User Profile and Theme Toggle */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
@@ -89,12 +110,39 @@ export function Header() {
             )}
           </button>
 
-          {/* User Profile Placeholder */}
-          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-            <span className="text-blue-600 dark:text-blue-400 font-semibold">
-              U
-            </span>
-          </div>
+          {isAuthenticated ? (
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center hidden sm:flex">
+                <span className="text-blue-600 dark:text-blue-400 font-semibold text-sm sm:text-base">
+                  {user?.role.charAt(0) || "U"}
+                </span>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleLogout}
+                title="Wyloguj się"
+                className="text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link to="/login">
+                <Button variant="ghost" className="hidden sm:flex items-center gap-2">
+                  <UserIcon className="w-4 h-4" />
+                  Zaloguj
+                </Button>
+                <Button variant="ghost" size="icon" className="sm:hidden">
+                  <UserIcon className="w-5 h-5" />
+                </Button>
+              </Link>
+              <Link to="/register" className="hidden sm:block">
+                <Button variant="default">Załóż konto</Button>
+              </Link>
+            </div>
+          )}
         </div>
       </nav>
     </header>

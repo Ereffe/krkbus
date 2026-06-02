@@ -134,7 +134,7 @@ export function Dashboard() {
     try {
       const [routesData, pricesData] = await Promise.all([
         fetchJson<ApiRoute[]>(`${API_BASE_URL}/api/routes`),
-        fetchJson<ApiPrice[]>(`${API_BASE_URL}/api/routes/prices`),
+        fetchJson<ApiPrice[]>(`${API_BASE_URL}/api/prices`),
       ]);
       const priceByRouteId = new Map<number, ApiPrice>();
       (pricesData ?? []).forEach((price) => {

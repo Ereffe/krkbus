@@ -1,7 +1,10 @@
 import { DriverScheduleBlock } from "./DriverScheduleBlock";
 import { ReportsBlock } from "./ReportsBlock";
+import { ReservationReportsBlock } from "./ReservationReportsBlock";
+import { CourseReportsBlock } from "./CoursesReportsBlock";
 import { ReservationsBlock } from "./ReservationsBlock";
 import { Layout } from "./Layout";
+
 
 export function MainPage() {
   return (
@@ -26,8 +29,10 @@ export function MainPage() {
 
           {/* Środkowa kolumna - Raporty i Rezerwacje */}
           <div className="flex-1 lg:flex-2 space-y-6">
-            <ReportsBlock />
+            <ReservationReportsBlock />
+            <CourseReportsBlock />
             <ReservationsBlock />
+
           </div>
         </div>
       </div>
