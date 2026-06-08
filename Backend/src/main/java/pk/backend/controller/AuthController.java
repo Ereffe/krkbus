@@ -94,7 +94,9 @@ public class AuthController {
                 
         var userDetails = new org.springframework.security.core.userdetails.User(
                 user.getLogin(), user.getPassword(), 
-                java.util.Collections.singleton(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + user.getRole()))
+                java.util.Collections.singleton(new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                        "ROLE_" + (user.getRole() != null ? user.getRole().trim().toUpperCase() : "")
+                ))
         );
         
         var jwtToken = jwtService.generateToken(userDetails);
