@@ -11,9 +11,8 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Employee {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+@PrimaryKeyJoinColumn(name = "userID")
+public class Employee extends User {
     private Integer employeeNumber;
     private String position;
 
@@ -23,3 +22,4 @@ public class Employee {
     @OneToMany(mappedBy = "driver")
     private Set<Trip> trips;
 }
+

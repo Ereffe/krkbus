@@ -1,9 +1,127 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { mockBusRoutes } from "@/data/mockRoutes";
 import { Layout } from "@/components/Layout";
 import { RouteMap } from "@/components/RouteMap";
 import { ArrowLeft, MapPin, Clock, Banknote, Zap } from "lucide-react";
-import { useState } from "react";
+import type { BusRoute, BusStop } from "@/types/bus";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+interface ApiStop {
+  stopID: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+}
+
+interface ApiRoute {
+  routeID: number;
+  name: string;
+  description: string;
+  stops?: ApiStop[];
+}
+
+interface ApiPrice {
+  priceID: number;
+  normalTicket: number;
+  studentTicket: number;
+  seniorTicket: number;
+  dayPass: number;
+  route?: { routeID: number };
+}
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+
+const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers ?? {}),
+    },
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed (${response.status})`);
+  }
+
+  if (response.status === 204) {
+    return null as T;
+  }
+
+  return (await response.json()) as T;
+};
+
+const toRadians = (value: number) => (value * Math.PI) / 180;
+
+const calculateDistanceKm = (stops: BusStop[]) => {
+  if (stops.length < 2) {
+    return 0;
+  }
+
+  const radiusKm = 6371;
+  let total = 0;
+
+  for (let i = 1; i < stops.length; i += 1) {
+    const prev = stops[i - 1].coordinate;
+    const next = stops[i].coordinate;
+    const deltaLat = toRadians(next.latitude - prev.latitude);
+    const deltaLng = toRadians(next.longitude - prev.longitude);
+    const lat1 = toRadians(prev.latitude);
+    const lat2 = toRadians(next.latitude);
+
+    const a =
+      Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+      Math.cos(lat1) *
+        Math.cos(lat2) *
+        Math.sin(deltaLng / 2) *
+        Math.sin(deltaLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    total += radiusKm * c;
+  }
+
+  return Math.round(total * 10) / 10;
+};
+
+const mapApiRoute = (
+  route: ApiRoute,
+  priceByRouteId: Map<number, ApiPrice>,
+): BusRoute => {
+  const stops: BusStop[] = (route.stops ?? []).map((stop) => ({
+    id: stop.stopID.toString(),
+    name: stop.name,
+    coordinate: {
+      latitude: stop.latitude,
+      longitude: stop.longitude,
+    },
+  }));
+  const startStop = stops[0] ?? {
+    id: "start",
+    name: "Brak danych",
+    coordinate: { latitude: 0, longitude: 0 },
+  };
+  const endStop = stops[stops.length - 1] ?? startStop;
+
+  const price = priceByRouteId.get(route.routeID);
+
+  return {
+    id: route.routeID.toString(),
+    name: route.name,
+    number: route.routeID.toString(),
+    description: route.description,
+    startStop,
+    endStop,
+    stops,
+    schedule: [],
+    pricing: {
+      studentTicket: price?.studentTicket ?? 0,
+      normalTicket: price?.normalTicket ?? 0,
+      seniorTicket: price?.seniorTicket ?? 0,
+      dayPass: price?.dayPass ?? 0,
+    },
+    frequency: "Brak danych",
+    distance: calculateDistanceKm(stops),
+  };
+};
 
 export function RouteDetail() {
   const { id } = useParams<{ id: string }>();
@@ -11,15 +129,64 @@ export function RouteDetail() {
   const [ticketType, setTicketType] = useState<"normal" | "student" | "senior">(
     "normal",
   );
+  const [route, setRoute] = useState<BusRoute | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const route = mockBusRoutes.find((r) => r.id === id);
+  const loadRoute = useCallback(async () => {
+    if (!id) {
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const [routeData, pricesData] = await Promise.all([
+        fetchJson<ApiRoute>(`${API_BASE_URL}/api/routes/${id}`),
+        fetchJson<ApiPrice[]>(`${API_BASE_URL}/api/prices`),
+      ]);
+      const priceByRouteId = new Map<number, ApiPrice>();
+      (pricesData ?? []).forEach((price) => {
+        if (price.route?.routeID) {
+          priceByRouteId.set(price.route.routeID, price);
+        }
+      });
+      setRoute(mapApiRoute(routeData, priceByRouteId));
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Nie udało się pobrać szczegółów trasy.";
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    loadRoute();
+  }, [loadRoute]);
+
+  const hasPricing = useMemo(
+    () =>
+      !!route &&
+      (route.pricing.normalTicket > 0 ||
+        route.pricing.studentTicket > 0 ||
+        route.pricing.seniorTicket > 0),
+    [route],
+  );
+  const hasSchedule = route ? route.schedule.length > 0 : false;
+  const canShowMap = route ? route.stops.length >= 2 : false;
 
   if (!route) {
     return (
       <Layout>
         <div className="text-center py-12">
           <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
-            Trasa nie znaleziona
+            {isLoading
+              ? "Ładowanie trasy..."
+              : (errorMessage ?? "Trasa nie znaleziona")}
           </p>
           <button
             onClick={() => navigate("/")}
@@ -88,7 +255,9 @@ export function RouteDetail() {
                   Częstotliwość
                 </p>
                 <p className="font-semibold text-gray-900 dark:text-white">
-                  {route.frequency}
+                  {route.frequency !== "Brak danych"
+                    ? route.frequency
+                    : "Brak danych"}
                 </p>
               </div>
             </div>
@@ -108,7 +277,7 @@ export function RouteDetail() {
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Cena</p>
                 <p className="font-semibold text-gray-900 dark:text-white">
-                  {currentPrice.toFixed(2)} zł
+                  {hasPricing ? `${currentPrice.toFixed(2)} zł` : "Brak danych"}
                 </p>
               </div>
             </div>
@@ -123,7 +292,13 @@ export function RouteDetail() {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                 Mapa trasy
               </h2>
-              <RouteMap route={route} />
+              {canShowMap ? (
+                <RouteMap route={route} />
+              ) : (
+                <div className="rounded-lg border border-dashed border-gray-300 dark:border-slate-600 p-6 text-sm text-gray-500 dark:text-gray-400">
+                  Brak danych o trasie do wyświetlenia na mapie.
+                </div>
+              )}
             </div>
 
             {/* Stops List */}
@@ -164,46 +339,52 @@ export function RouteDetail() {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                 Harmonogram
               </h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b-2 border-gray-200 dark:border-slate-600">
-                      <th className="text-left py-2 px-4 text-gray-700 dark:text-gray-300 font-semibold">
-                        Odjazd
-                      </th>
-                      <th className="text-left py-2 px-4 text-gray-700 dark:text-gray-300 font-semibold">
-                        Przyjazd
-                      </th>
-                      <th className="text-left py-2 px-4 text-gray-700 dark:text-gray-300 font-semibold">
-                        Dni
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {route.schedule.map((item, index) => (
-                      <tr
-                        key={index}
-                        className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700"
-                      >
-                        <td className="py-3 px-4 text-gray-900 dark:text-white font-medium">
-                          {item.departure}
-                        </td>
-                        <td className="py-3 px-4 text-gray-900 dark:text-white">
-                          {item.arrival}
-                        </td>
-                        <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
-                          {item.daysOfWeek.includes(1) &&
-                          item.daysOfWeek.includes(5)
-                            ? item.daysOfWeek.includes(6)
-                              ? "Codziennie"
-                              : "Dni robocze"
-                            : "Weekendy"}
-                        </td>
+              {hasSchedule ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b-2 border-gray-200 dark:border-slate-600">
+                        <th className="text-left py-2 px-4 text-gray-700 dark:text-gray-300 font-semibold">
+                          Odjazd
+                        </th>
+                        <th className="text-left py-2 px-4 text-gray-700 dark:text-gray-300 font-semibold">
+                          Przyjazd
+                        </th>
+                        <th className="text-left py-2 px-4 text-gray-700 dark:text-gray-300 font-semibold">
+                          Dni
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {route.schedule.map((item, index) => (
+                        <tr
+                          key={index}
+                          className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700"
+                        >
+                          <td className="py-3 px-4 text-gray-900 dark:text-white font-medium">
+                            {item.departure}
+                          </td>
+                          <td className="py-3 px-4 text-gray-900 dark:text-white">
+                            {item.arrival}
+                          </td>
+                          <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                            {item.daysOfWeek.includes(1) &&
+                            item.daysOfWeek.includes(5)
+                              ? item.daysOfWeek.includes(6)
+                                ? "Codziennie"
+                                : "Dni robocze"
+                              : "Weekendy"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-gray-300 dark:border-slate-600 p-6 text-sm text-gray-500 dark:text-gray-400">
+                  Harmonogram nie jest jeszcze dostępny dla tej trasy.
+                </div>
+              )}
             </div>
           </div>
 
@@ -213,54 +394,59 @@ export function RouteDetail() {
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
                 Typ biletu
               </h3>
-
-              <div className="space-y-3 mb-8">
-                {[
-                  {
-                    id: "normal",
-                    label: "Bilet normalny",
-                    price: route.pricing.normalTicket,
-                  },
-                  {
-                    id: "student",
-                    label: "Bilet studencki",
-                    price: route.pricing.studentTicket,
-                  },
-                  {
-                    id: "senior",
-                    label: "Bilet seniorski",
-                    price: route.pricing.seniorTicket,
-                  },
-                ].map((option) => (
-                  <label
-                    key={option.id}
-                    className={`flex items-center gap-3 p-4 rounded-lg cursor-pointer transition border-2 ${
-                      ticketType === option.id
-                        ? "border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900"
-                        : "border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="ticket"
-                      value={option.id}
-                      checked={ticketType === option.id}
-                      onChange={(e) =>
-                        setTicketType(e.target.value as typeof ticketType)
-                      }
-                      className="w-4 h-4"
-                    />
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900 dark:text-white">
-                        {option.label}
-                      </p>
-                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        {option.price.toFixed(2)} zł
-                      </p>
-                    </div>
-                  </label>
-                ))}
-              </div>
+              {hasPricing ? (
+                <div className="space-y-3 mb-8">
+                  {[
+                    {
+                      id: "normal",
+                      label: "Bilet normalny",
+                      price: route.pricing.normalTicket,
+                    },
+                    {
+                      id: "student",
+                      label: "Bilet studencki",
+                      price: route.pricing.studentTicket,
+                    },
+                    {
+                      id: "senior",
+                      label: "Bilet seniorski",
+                      price: route.pricing.seniorTicket,
+                    },
+                  ].map((option) => (
+                    <label
+                      key={option.id}
+                      className={`flex items-center gap-3 p-4 rounded-lg cursor-pointer transition border-2 ${
+                        ticketType === option.id
+                          ? "border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900"
+                          : "border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="ticket"
+                        value={option.id}
+                        checked={ticketType === option.id}
+                        onChange={(e) =>
+                          setTicketType(e.target.value as typeof ticketType)
+                        }
+                        className="w-4 h-4"
+                      />
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900 dark:text-white">
+                          {option.label}
+                        </p>
+                        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                          {option.price.toFixed(2)} zł
+                        </p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-gray-300 dark:border-slate-600 p-4 text-sm text-gray-500 dark:text-gray-400 mb-8">
+                  Cennik nie jest jeszcze dostępny dla tej trasy.
+                </div>
+              )}
 
               {/* Passe Info */}
               <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 mb-6 border border-gray-200 dark:border-slate-600">
@@ -268,7 +454,9 @@ export function RouteDetail() {
                   Karnet dobowy
                 </p>
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
-                  {route.pricing.dayPass.toFixed(2)} zł
+                  {hasPricing
+                    ? `${route.pricing.dayPass.toFixed(2)} zł`
+                    : "Brak danych"}
                 </p>
                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
                   Nieograniczony dostęp na dzień

@@ -1,17 +1,174 @@
 import { Layout } from "@/components/Layout";
 import { BusRouteCard } from "@/components/BusRouteCard";
-import { mockBusRoutes } from "@/data/mockRoutes";
+import type { BusRoute, BusStop } from "@/types/bus";
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+interface ApiStop {
+  stopID: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+}
+
+interface ApiRoute {
+  routeID: number;
+  name: string;
+  description: string;
+  stops?: ApiStop[];
+}
+
+interface ApiPrice {
+  priceID: number;
+  normalTicket: number;
+  studentTicket: number;
+  seniorTicket: number;
+  dayPass: number;
+  route?: { routeID: number };
+}
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+
+const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers ?? {}),
+    },
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed (${response.status})`);
+  }
+
+  if (response.status === 204) {
+    return null as T;
+  }
+
+  return (await response.json()) as T;
+};
+
+const toRadians = (value: number) => (value * Math.PI) / 180;
+
+const calculateDistanceKm = (stops: BusStop[]) => {
+  if (stops.length < 2) {
+    return 0;
+  }
+
+  const radiusKm = 6371;
+  let total = 0;
+
+  for (let i = 1; i < stops.length; i += 1) {
+    const prev = stops[i - 1].coordinate;
+    const next = stops[i].coordinate;
+    const deltaLat = toRadians(next.latitude - prev.latitude);
+    const deltaLng = toRadians(next.longitude - prev.longitude);
+    const lat1 = toRadians(prev.latitude);
+    const lat2 = toRadians(next.latitude);
+
+    const a =
+      Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+      Math.cos(lat1) *
+        Math.cos(lat2) *
+        Math.sin(deltaLng / 2) *
+        Math.sin(deltaLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    total += radiusKm * c;
+  }
+
+  return Math.round(total * 10) / 10;
+};
+
+const mapApiRoute = (
+  route: ApiRoute,
+  priceByRouteId: Map<number, ApiPrice>,
+): BusRoute => {
+  const stops: BusStop[] = (route.stops ?? []).map((stop) => ({
+    id: stop.stopID.toString(),
+    name: stop.name,
+    coordinate: {
+      latitude: stop.latitude,
+      longitude: stop.longitude,
+    },
+  }));
+  const startStop = stops[0] ?? {
+    id: "start",
+    name: "Brak danych",
+    coordinate: { latitude: 0, longitude: 0 },
+  };
+  const endStop = stops[stops.length - 1] ?? startStop;
+
+  const price = priceByRouteId.get(route.routeID);
+
+  return {
+    id: route.routeID.toString(),
+    name: route.name,
+    number: route.routeID.toString(),
+    description: route.description,
+    startStop,
+    endStop,
+    stops,
+    schedule: [],
+    pricing: {
+      studentTicket: price?.studentTicket ?? 0,
+      normalTicket: price?.normalTicket ?? 0,
+      seniorTicket: price?.seniorTicket ?? 0,
+      dayPass: price?.dayPass ?? 0,
+    },
+    frequency: "Brak danych",
+    distance: calculateDistanceKm(stops),
+  };
+};
 
 export function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [routes, setRoutes] = useState<BusRoute[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const filteredRoutes = mockBusRoutes.filter(
-    (route) =>
-      route.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      route.number.includes(searchTerm) ||
-      route.description.toLowerCase().includes(searchTerm.toLowerCase())
+  const loadRoutes = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const [routesData, pricesData] = await Promise.all([
+        fetchJson<ApiRoute[]>(`${API_BASE_URL}/api/routes`),
+        fetchJson<ApiPrice[]>(`${API_BASE_URL}/api/prices`),
+      ]);
+      const priceByRouteId = new Map<number, ApiPrice>();
+      (pricesData ?? []).forEach((price) => {
+        if (price.route?.routeID) {
+          priceByRouteId.set(price.route.routeID, price);
+        }
+      });
+      setRoutes(
+        (routesData ?? []).map((route) => mapApiRoute(route, priceByRouteId)),
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Nie udało się pobrać listy tras.";
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRoutes();
+  }, [loadRoutes]);
+
+  const filteredRoutes = useMemo(
+    () =>
+      routes.filter(
+        (route) =>
+          route.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          route.number.includes(searchTerm) ||
+          route.description.toLowerCase().includes(searchTerm.toLowerCase()),
+      ),
+    [routes, searchTerm],
   );
 
   return (
@@ -48,8 +205,14 @@ export function Dashboard() {
           ))}
         </div>
 
+        {errorMessage && (
+          <div className="text-center text-sm text-red-600 dark:text-red-300">
+            {errorMessage}
+          </div>
+        )}
+
         {/* No Results */}
-        {filteredRoutes.length === 0 && (
+        {!isLoading && filteredRoutes.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-600 text-lg">
               Nie znaleziono tras pasujących do wyszukiwania

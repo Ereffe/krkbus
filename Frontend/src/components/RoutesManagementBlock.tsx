@@ -152,7 +152,7 @@ export function RoutesManagementBlock() {
       );
 
       const createdRoute = await fetchJson<ApiRoute>(
-        `${API_BASE_URL}/api/routes/routes`,
+        `${API_BASE_URL}/api/routes`,
         {
           method: "POST",
           body: JSON.stringify({

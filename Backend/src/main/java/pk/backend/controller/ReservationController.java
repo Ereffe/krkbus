@@ -19,6 +19,12 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.createReservation(reservationDTO));
     }
 
+    @PostMapping("/create")
+    public ResponseEntity<ReservationDTO> createReservationByRouteAndDate(@RequestBody pk.backend.dto.ReservationCreateRequest request) {
+        return ResponseEntity.ok(reservationService.createReservationByRouteAndDate(request));
+    }
+
+
     @PostMapping("/{id}/cancel")
     public ResponseEntity<ReservationDTO> cancelReservation(@PathVariable Integer id) {
         return ResponseEntity.ok(reservationService.cancelReservation(id));

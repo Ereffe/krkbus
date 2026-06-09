@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.*;
+import java.time.LocalDate;
 
 /**
  * class for user personal information.
@@ -21,6 +22,7 @@ public class UserProfile {
     private Integer id;
     private String firstName;
     private String lastName;
+    private LocalDate dateOfBirth;
     private String email;
     private String phone;
 }

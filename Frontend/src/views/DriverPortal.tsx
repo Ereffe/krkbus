@@ -1,5 +1,4 @@
 import { Layout } from "@/components/Layout";
-import { mockDrivers, mockDriverSchedules } from "@/data/mockDrivers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,20 +20,138 @@ import {
   AlertCircle,
   TrendingUp,
 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+interface ApiDriver {
+  employeeNumber: number;
+  position: string;
+}
+
+interface ApiScheduleEntry {
+  scheduleID: number;
+  date: string;
+  shiftStartTime: string;
+  shiftEndTime: string;
+  employee?: { employeeNumber: number };
+  employeeId?: number;
+  trip?: { tripID?: number; route?: { routeID?: number } };
+  tripId?: number;
+}
+
+interface UiDriver {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  licenseNumber: string;
+  totalHours: number;
+  yearsOfExperience: number;
+}
+
+interface UiDriverSchedule {
+  driverId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  routeId: string;
+  status: "completed" | "in-progress" | "scheduled" | "cancelled";
+}
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+
+const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers ?? {}),
+    },
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed (${response.status})`);
+  }
+
+  if (response.status === 204) {
+    return null as T;
+  }
+
+  return (await response.json()) as T;
+};
+
+const toTimeLabel = (value?: string) => value?.slice(0, 5) ?? "—";
 
 export function DriverPortal() {
-  // In a real app, this would come from auth context
-  const currentDriver = mockDrivers[0];
-  const driverSchedules = mockDriverSchedules.filter(
-    (s) => s.driverId === currentDriver.id,
-  );
+  const [drivers, setDrivers] = useState<UiDriver[]>([]);
+  const [schedules, setSchedules] = useState<UiDriverSchedule[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [availability, setAvailability] = useState<"available" | "unavailable">(
     "available",
   );
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0],
+  );
+
+  const mapDriver = (driver: ApiDriver): UiDriver => ({
+    id: driver.employeeNumber.toString(),
+    name: `Kierowca ${driver.employeeNumber}`,
+    email: "—",
+    phone: "—",
+    licenseNumber: "—",
+    totalHours: 0,
+    yearsOfExperience: 0,
+  });
+
+  const mapSchedule = (entry: ApiScheduleEntry): UiDriverSchedule => {
+    const driverId =
+      entry.employee?.employeeNumber?.toString() ??
+      entry.employeeId?.toString() ??
+      "0";
+    const routeId =
+      entry.trip?.route?.routeID?.toString() ?? entry.tripId?.toString() ?? "—";
+
+    return {
+      driverId,
+      date: entry.date,
+      startTime: toTimeLabel(entry.shiftStartTime),
+      endTime: toTimeLabel(entry.shiftEndTime),
+      routeId,
+      status: "scheduled",
+    };
+  };
+
+  const loadData = useCallback(async () => {
+    setErrorMessage(null);
+    try {
+      const [driversData, schedulesData] = await Promise.all([
+        fetchJson<ApiDriver[]>(`${API_BASE_URL}/api/drivers`),
+        fetchJson<ApiScheduleEntry[]>(`${API_BASE_URL}/api/schedules`),
+      ]);
+      setDrivers((driversData ?? []).map(mapDriver));
+      setSchedules((schedulesData ?? []).map(mapSchedule));
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Nie udało się pobrać danych kierowcy.";
+      setErrorMessage(message);
+    } finally {
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const currentDriver = drivers[0];
+  const driverSchedules = useMemo(
+    () =>
+      currentDriver
+        ? schedules.filter((s) => s.driverId === currentDriver.id)
+        : [],
+    [currentDriver, schedules],
   );
 
   const todaysTrips = driverSchedules.filter((s) => s.date === selectedDate);
@@ -73,10 +190,10 @@ export function DriverPortal() {
     <Layout>
       <div className="space-y-8">
         {/* Header with Welcome */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-900 dark:to-blue-950 rounded-lg shadow-lg p-8 text-white">
+        <div className="bg-linear-to-r from-blue-600 to-blue-800 dark:from-blue-900 dark:to-blue-950 rounded-lg shadow-lg p-8 text-white">
           <div>
             <h1 className="text-4xl font-bold mb-2">
-              Witaj, {currentDriver.name}!
+              Witaj, {currentDriver ? currentDriver.name : "Kierowco"}!
             </h1>
             <p className="text-blue-100">
               Portal kierowcy - Zarządzaj swoją pracą
@@ -96,59 +213,67 @@ export function DriverPortal() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold uppercase">
-                    Imię i nazwisko
-                  </p>
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {currentDriver.name}
-                  </p>
-                </div>
+                {currentDriver ? (
+                  <>
+                    <div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold uppercase">
+                        Imię i nazwisko
+                      </p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {currentDriver.name}
+                      </p>
+                    </div>
 
-                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
-                  <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Email
-                    </p>
-                    <p className="font-semibold text-gray-900 dark:text-white break-all">
-                      {currentDriver.email}
-                    </p>
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
+                      <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      <div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          Email
+                        </p>
+                        <p className="font-semibold text-gray-900 dark:text-white break-all">
+                          {currentDriver.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
+                      <Phone className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      <div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          Telefon
+                        </p>
+                        <p className="font-semibold text-gray-900 dark:text-white">
+                          {currentDriver.phone}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold uppercase">
+                        Numer prawa jazdy
+                      </p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {currentDriver.licenseNumber}
+                      </p>
+                    </div>
+
+                    <div className="border-t dark:border-slate-700 pt-4">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold uppercase mb-2">
+                        Doświadczenie
+                      </p>
+                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                        {currentDriver.yearsOfExperience || "—"} lat
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Łącznie {currentDriver.totalHours || "—"} godzin pracy
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Brak danych kierowcy do wyświetlenia
                   </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
-                  <Phone className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Telefon
-                    </p>
-                    <p className="font-semibold text-gray-900 dark:text-white">
-                      {currentDriver.phone}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold uppercase">
-                    Numer prawa jazdy
-                  </p>
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {currentDriver.licenseNumber}
-                  </p>
-                </div>
-
-                <div className="border-t dark:border-slate-700 pt-4">
-                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold uppercase mb-2">
-                    Doświadczenie
-                  </p>
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-                    {currentDriver.yearsOfExperience} lat
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Łącznie {currentDriver.totalHours} godzin pracy
-                  </p>
-                </div>
+                )}
               </CardContent>
             </Card>
 
@@ -344,6 +469,11 @@ export function DriverPortal() {
                       Brak tras na wybrany dzień
                     </p>
                   </div>
+                )}
+                {errorMessage && (
+                  <p className="mt-4 text-sm text-red-600 dark:text-red-300">
+                    {errorMessage}
+                  </p>
                 )}
               </CardContent>
             </Card>

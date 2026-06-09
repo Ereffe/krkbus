@@ -3,6 +3,7 @@ package pk.backend.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pk.backend.dto.ReservationCreateRequest;
 import pk.backend.dto.ReservationDTO;
 import pk.backend.entity.reservation.Reservation;
 import pk.backend.entity.reservation.ReservationStatus;
@@ -126,6 +127,47 @@ public class ReservationService {
         return mapToDTO(reservationRepository.save(reservation));
     }
 
+    public ReservationDTO createReservationByRouteAndDate(ReservationCreateRequest request) {
+        if (request.getReservationDate() == null) {
+            throw new RuntimeException("reservationDate is required");
+        }
+        if (request.getSeatCount() == null || request.getSeatCount() <= 0) {
+            throw new RuntimeException("seatCount must be greater than 0");
+        }
+        if (request.getRouteID() == null) {
+            throw new RuntimeException("routeID is required");
+        }
+
+        // Find trip by route and date
+        Trip trip = tripRepository.findAll().stream()
+                .filter(t -> t.getRoute() != null)
+                .filter(t -> request.getRouteID().equals(t.getRoute().getRouteID()))
+                .filter(t -> t.getDepartureTime() != null && t.getDepartureTime().toLocalDate().equals(request.getReservationDate()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Trip not found for given route/date"));
+
+        // Find current logged-in client is out of scope (existing createReservation uses clientID).
+        // For now, use clientID from JWT principal if available; otherwise require clientID from DTO endpoint.
+        // We'll resolve client from security context.
+        var principal = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(principal instanceof org.springframework.security.core.userdetails.User userDetails)) {
+            throw new RuntimeException("No authenticated user");
+        }
+
+        Client client = clientRepository.findAll().stream()
+                .filter(c -> c.getLogin() != null && c.getLogin().equals(userDetails.getUsername()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Client not found"));
+
+
+        ReservationDTO reservationDTO = new ReservationDTO();
+        reservationDTO.setTripID(trip.getTripID());
+        reservationDTO.setClientID(client.getUserID());
+        reservationDTO.setSeatCount(request.getSeatCount());
+
+        return createReservation(reservationDTO);
+    }
+
     private ReservationDTO mapToDTO(Reservation reservation) {
         ReservationDTO dto = new ReservationDTO();
         dto.setReservationID(reservation.getReservationID());
@@ -138,5 +180,6 @@ public class ReservationService {
         dto.setCancelledAt(reservation.getCancelledAt());
         return dto;
     }
+
 }
 
