@@ -5,6 +5,7 @@ import lombok.*;
 import pk.backend.entity.user.Employee;
 import pk.backend.entity.reservation.Reservation;
 import pk.backend.entity.vehicle.Vehicle;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -24,17 +25,21 @@ public class Trip {
     private Integer availableSeats;
 
     @OneToMany(mappedBy = "trip")
+    @JsonIgnoreProperties("trip")
     private Set<Reservation> reservations;
 
     @ManyToOne
     @JoinColumn(name = "vehicle_id")
+    @JsonIgnoreProperties({"trips", "fuelRecords", "vehicle"})
     private Vehicle vehicle;
 
     @ManyToOne
     @JoinColumn(name = "employee_id")
+    @JsonIgnoreProperties({"trips", "scheduleEntries"})
     private Employee driver;
 
     @ManyToOne
     @JoinColumn(name = "route_id")
+    @JsonIgnoreProperties({"stops"})
     private Route route;
 }

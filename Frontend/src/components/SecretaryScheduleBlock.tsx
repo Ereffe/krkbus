@@ -19,24 +19,28 @@ import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 
 interface ApiSecretary {
-  employeeNumber: number;
+  userID: number;
   position: string;
-}
-
-interface SecretaryDetails {
-  name: string;
-  email: string;
-  schedule: string;
-  phone: string;
+  login: string;
+  role: string;
+  status: string;
+  profile?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  };
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem("token");
   const response = await fetch(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers ?? {}),
     },
   });
@@ -50,24 +54,34 @@ const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
     return null as T;
   }
 
-  return (await response.json()) as T;
+  const text = await response.text();
+  if (!text || text.trim().length === 0) {
+    return null as T;
+  }
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    // If backend returns non-JSON for 200 responses.
+    return null as T;
+  }
 };
 
 export function SecretaryScheduleBlock() {
   const [secretaries, setSecretaries] = useState<ApiSecretary[]>([]);
-  const [secretaryDetails, setSecretaryDetails] = useState<
-    Record<string, SecretaryDetails>
-  >({});
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedSecretaryId, setSelectedSecretaryId] = useState<string>("");
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    schedule: "",
-    phone: "",
+    fromDate: "",
+    toDate: "",
+    shiftStartTime: "",
+    shiftEndTime: "",
   });
+
 
   const loadSecretaries = useCallback(async () => {
     setIsLoading(true);
@@ -92,46 +106,51 @@ export function SecretaryScheduleBlock() {
     loadSecretaries();
   }, [loadSecretaries]);
 
-  const handleAddSecretary = async () => {
-    if (formData.name && formData.email && formData.schedule && formData.phone) {
-      setIsLoading(true);
-      setErrorMessage(null);
-      try {
-        const created = await fetchJson<ApiSecretary>(
-          `${API_BASE_URL}/api/owner/secretary`,
-          {
-            method: "POST",
-            body: JSON.stringify({ position: "Secretary" }),
-          },
-        );
+  const handleUpdateSchedule = async () => {
+    if (!selectedSecretaryId) return;
+    if (!formData.fromDate || !formData.toDate) return;
+    if (!formData.shiftStartTime || !formData.shiftEndTime) return;
 
-        setSecretaries((prev) => [...prev, created]);
-        setSecretaryDetails((prev) => ({
-          ...prev,
-          [created.employeeNumber.toString()]: {
-            name: formData.name,
-            email: formData.email,
-            schedule: formData.schedule,
-            phone: formData.phone,
-          },
-        }));
+    setIsLoading(true);
+    setErrorMessage(null);
 
-        setFormData({ name: "", email: "", schedule: "", phone: "" });
-        setIsDialogOpen(false);
-      } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Nie udało się dodać sekretarki.";
-        setErrorMessage(message);
-      } finally {
-        setIsLoading(false);
-      }
+    try {
+      await fetchJson<void>(
+        `${API_BASE_URL}/api/owner/secretary/${selectedSecretaryId}/schedule`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            fromDate: formData.fromDate,
+            toDate: formData.toDate,
+            shiftStartTime: formData.shiftStartTime,
+            shiftEndTime: formData.shiftEndTime,
+          }),
+        },
+      );
+
+      // For now the table does not show detailed schedule entries; close dialog.
+      setFormData({
+        fromDate: "",
+        toDate: "",
+        shiftStartTime: "",
+        shiftEndTime: "",
+      });
+      setSelectedSecretaryId("");
+      setIsDialogOpen(false);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Nie udało się zaktualizować grafiku.";
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+
   return (
-    <Card className="shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
+    <Card className="bg-white dark:bg-slate-800 shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
       <CardHeader className="border-b dark:border-slate-700 pb-6">
         <div className="flex items-center justify-between">
           <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
@@ -167,6 +186,7 @@ export function SecretaryScheduleBlock() {
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
                   Aktualny Grafik
                 </TableHead>
+
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
                   Telefon
                 </TableHead>
@@ -178,30 +198,34 @@ export function SecretaryScheduleBlock() {
 
             <TableBody>
               {secretaries.map((secretary) => {
-                const details =
-                  secretaryDetails[secretary.employeeNumber.toString()];
+                const name = secretary.profile?.firstName
+                  ? `${secretary.profile.firstName} ${secretary.profile.lastName ?? ""}`.trim()
+                  : `Sekretarz ${secretary.userID}`;
+
                 return (
                   <TableRow
-                    key={secretary.employeeNumber}
+                    key={secretary.userID}
                     className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition"
                   >
                     <TableCell className="font-semibold text-gray-900 dark:text-white py-4">
-                      {details?.name ?? `Sekretarz ${secretary.employeeNumber}`}
+                      {name}
                     </TableCell>
                     <TableCell className="text-gray-600 dark:text-gray-400 py-4">
-                      {details?.email ?? "—"}
+                      {secretary.profile?.email ?? "—"}
                     </TableCell>
                     <TableCell className="text-gray-600 dark:text-gray-400 py-4">
-                      {details?.schedule ?? "—"}
+                      {"—"}
                     </TableCell>
+
+
                     <TableCell className="text-gray-600 dark:text-gray-400 py-4">
-                      {details?.phone ?? "—"}
+                      {secretary.profile?.phone ?? "—"}
                     </TableCell>
                     <TableCell className="py-4">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
+                        className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:text-blue-900 dark:border-blue-600 dark:text-blue-400 dark:hover:bg-slate-700 dark:hover:text-blue-300"
                       >
                         Edytuj Grafik
                       </Button>
@@ -229,70 +253,101 @@ export function SecretaryScheduleBlock() {
         <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700">
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">
-              Dodaj Nową Sekretarkę
+              Ustaw grafik sekretarki
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Imię i Nazwisko
+                Sekretarka
               </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                placeholder="np. Maria Kowalska"
-              />
+              <select
+                value={selectedSecretaryId}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  setSelectedSecretaryId(id);
+                  setFormData((prev) => ({
+                    ...prev,
+                  }));
+
+                }}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+              >
+                <option value="">Wybierz sekretarkę</option>
+                {secretaries.map((s) => {
+                  const name = s.profile?.firstName
+                    ? `${s.profile.firstName} ${s.profile.lastName ?? ""}`.trim()
+                    : `Sekretarka ${s.userID}`;
+                  return (
+                    <option key={s.userID} value={s.userID.toString()}>
+                      {name}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                placeholder="np. maria@example.com"
-              />
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Data od
+                </label>
+                <input
+                  type="date"
+                  value={formData.fromDate}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, fromDate: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Data do
+                </label>
+                <input
+                  type="date"
+                  value={formData.toDate}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, toDate: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Godzina start
+                  </label>
+                  <input
+                    type="time"
+                    value={formData.shiftStartTime}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, shiftStartTime: e.target.value }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Godzina koniec
+                  </label>
+                  <input
+                    type="time"
+                    value={formData.shiftEndTime}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, shiftEndTime: e.target.value }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Grafik Pracy
-              </label>
-              <input
-                type="text"
-                value={formData.schedule}
-                onChange={(e) =>
-                  setFormData({ ...formData, schedule: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                placeholder="np. Poniedziałek - Piątek 8:00-16:00"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Telefon
-              </label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                placeholder="np. 555-0001"
-              />
-            </div>
           </div>
 
           <DialogFooter>
@@ -304,9 +359,9 @@ export function SecretaryScheduleBlock() {
               Anuluj
             </Button>
             <Button
-              onClick={handleAddSecretary}
-              disabled={isLoading}
-              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white"
+              onClick={handleUpdateSchedule}
+              disabled={isLoading || !selectedSecretaryId}
+              className="bg-blue-600 hover:bg-blue-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-60 disabled:cursor-not-allowed dark:bg-blue-700 dark:hover:bg-blue-600 dark:focus:ring-blue-400/50"
             >
               {isLoading ? "Zapisywanie..." : "Dodaj"}
             </Button>

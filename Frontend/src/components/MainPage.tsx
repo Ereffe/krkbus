@@ -1,5 +1,5 @@
 import { DriverScheduleBlock } from "./DriverScheduleBlock";
-import { ReportsBlock } from "./ReportsBlock";
+
 import { ReservationReportsBlock } from "./ReservationReportsBlock";
 import { CourseReportsBlock } from "./CoursesReportsBlock";
 import { ReservationsBlock } from "./ReservationsBlock";
@@ -32,6 +32,8 @@ export function MainPage() {
             <ReservationReportsBlock />
             <CourseReportsBlock />
             <ReservationsBlock />
+
+
 
           </div>
         </div>

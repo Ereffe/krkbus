@@ -18,7 +18,9 @@ import java.util.List;
 public class SecretaryWorkerController {
 
     private final EmployeeService employeeService;
+    private final pk.backend.service.SecretaryScheduleService secretaryScheduleService;
     private static final String POSITION = "Secretary";
+
 
     // ==================== Secretary Worker Management ====================
 
@@ -48,12 +50,19 @@ public class SecretaryWorkerController {
     }
 
     @PutMapping("/{workerId}/schedule")
-    public void updateSecretaryWorkerSchedule(@PathVariable Integer workerId) {
-        // Assume this calls ScheduleService or just acknowledge implementation
-        // Real implementation would link to ScheduleEntry creation/updates
-        throw new UnsupportedOperationException("Not implemented yet - complex schedule linking");
+    public void updateSecretaryWorkerSchedule(
+            @PathVariable Integer workerId,
+            @RequestBody pk.backend.dto.SecretaryScheduleRangeRequest request) {
+
+        if (workerId == null) {
+            throw new IllegalArgumentException("workerId is required");
+        }
+
+        secretaryScheduleService.upsertSecretarySchedule(workerId, request);
     }
 
+
 }
+
 
 

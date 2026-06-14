@@ -20,7 +20,8 @@ public class EmployeeService {
     @Transactional(readOnly = true)
     public List<Employee> getAllEmployeesByPosition(String position) {
         return employeeRepository.findAll().stream()
-                .filter(e -> position.equalsIgnoreCase(e.getPosition()))
+                .filter(e -> position.equalsIgnoreCase(e.getPosition()) || 
+                            (e.getRole() != null && e.getRole().equalsIgnoreCase(position)))
                 .collect(Collectors.toList());
     }
 
@@ -28,7 +29,8 @@ public class EmployeeService {
     public Employee getEmployeeByIdAndPosition(Integer id, String position) {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Employee with ID " + id + " not found"));
-        if (!position.equalsIgnoreCase(employee.getPosition())) {
+        if (!position.equalsIgnoreCase(employee.getPosition()) && 
+            !(employee.getRole() != null && employee.getRole().equalsIgnoreCase(position))) {
             throw new IllegalArgumentException("Employee is not a " + position);
         }
         return employee;

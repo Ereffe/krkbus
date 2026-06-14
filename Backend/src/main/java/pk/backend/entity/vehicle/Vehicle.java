@@ -3,6 +3,7 @@ package pk.backend.entity.vehicle;
 import jakarta.persistence.*;
 import lombok.*;
 import pk.backend.entity.trip.Trip;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.Set;
 
@@ -22,8 +23,10 @@ public class Vehicle {
     private String parkingLocation;
 
     @OneToMany(mappedBy = "vehicle")
+    @JsonIgnoreProperties("vehicle")
     private Set<Trip> trips;
 
     @OneToMany(mappedBy = "vehicle")
+    @JsonIgnoreProperties("vehicle")
     private Set<FuelRecord> fuelRecords;
 }

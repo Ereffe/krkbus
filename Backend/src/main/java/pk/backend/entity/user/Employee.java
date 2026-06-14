@@ -3,6 +3,7 @@ package pk.backend.entity.user;
 import jakarta.persistence.*;
 import lombok.*;
 import pk.backend.entity.trip.Trip;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.Set;
 
@@ -17,9 +18,11 @@ public class Employee extends User {
     private String position;
 
     @OneToMany(mappedBy = "employee")
+    @JsonIgnoreProperties("employee")
     private Set<ScheduleEntry> scheduleEntries;
 
     @OneToMany(mappedBy = "driver")
+    @JsonIgnoreProperties("driver")
     private Set<Trip> trips;
 }
 

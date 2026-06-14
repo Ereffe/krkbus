@@ -4,6 +4,9 @@ import { RouteMap } from "@/components/RouteMap";
 import { ArrowLeft, MapPin, Clock, Banknote, Zap } from "lucide-react";
 import type { BusRoute, BusStop } from "@/types/bus";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Toast, type ToastState } from "@/components/Toast";
+
+
 
 interface ApiStop {
   stopID: number;
@@ -72,9 +75,9 @@ const calculateDistanceKm = (stops: BusStop[]) => {
     const a =
       Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
       Math.cos(lat1) *
-        Math.cos(lat2) *
-        Math.sin(deltaLng / 2) *
-        Math.sin(deltaLng / 2);
+      Math.cos(lat2) *
+      Math.sin(deltaLng / 2) *
+      Math.sin(deltaLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     total += radiusKm * c;
   }
@@ -124,6 +127,32 @@ const mapApiRoute = (
 };
 
 export function RouteDetail() {
+  const [toast, setToast] = useState<ToastState>({
+    open: false,
+    variant: "success",
+    title: "",
+    message: "",
+  });
+
+  const showToast = ({
+    title,
+    message,
+    variant,
+  }: {
+    title?: string;
+    message?: string;
+    variant: ToastState["variant"];
+  }) => {
+    setToast({ open: true, title, message, variant });
+  };
+
+  const closeToast = () => setToast((t) => ({ ...t, open: false }));
+
+  const toastProps = {
+    toast: toast,
+    onClose: closeToast,
+  };
+
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [ticketType, setTicketType] = useState<"normal" | "student" | "senior">(
@@ -369,7 +398,7 @@ export function RouteDetail() {
                           </td>
                           <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
                             {item.daysOfWeek.includes(1) &&
-                            item.daysOfWeek.includes(5)
+                              item.daysOfWeek.includes(5)
                               ? item.daysOfWeek.includes(6)
                                 ? "Codziennie"
                                 : "Dni robocze"
@@ -415,11 +444,10 @@ export function RouteDetail() {
                   ].map((option) => (
                     <label
                       key={option.id}
-                      className={`flex items-center gap-3 p-4 rounded-lg cursor-pointer transition border-2 ${
-                        ticketType === option.id
-                          ? "border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900"
-                          : "border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500"
-                      }`}
+                      className={`flex items-center gap-3 p-4 rounded-lg cursor-pointer transition border-2 ${ticketType === option.id
+                        ? "border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900"
+                        : "border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500"
+                        }`}
                     >
                       <input
                         type="radio"
@@ -464,12 +492,65 @@ export function RouteDetail() {
               </div>
 
               {/* Buy Button */}
-              <button className="w-full bg-blue-600 dark:bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition">
-                Kup bilet
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={async () => {
+                  setErrorMessage(null);
+                  setIsLoading(true);
+                  try {
+                    // For now, frontend “kup bilet” maps to reservation creation by route+date.
+                    // We need user to be logged in (ReservationService resolves Client from security context).
+                    const reservationDate = new Date().toISOString().split("T")[0];
+
+                    const payload = {
+                      routeID: Number(id),
+                      // Backend expects LocalDate (no time). Send ISO date string.
+                      reservationDate: reservationDate,
+                      seatCount: 1,
+                    };
+
+                    const res = await fetch(`${API_BASE_URL}/api/reservations/create`, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        ...(localStorage.getItem("token")
+                          ? { Authorization: `Bearer ${localStorage.getItem("token")}` }
+                          : {}),
+                      },
+                      body: JSON.stringify(payload),
+                    });
+
+                    if (!res.ok) {
+                      const message = await res.text();
+                      throw new Error(message || `Request failed (${res.status})`);
+                    }
+
+                    // “jak rezerwacje” => po sukcesie wyświetl komunikat jako toast
+                    showToast({
+                      title: "Sukces",
+                      message: "Bilet został kupiony (utworzono rezerwację).",
+                      variant: "success",
+                    });
+                  } catch (e) {
+                    setErrorMessage(
+                      e instanceof Error
+                        ? e.message
+                        : "Nie udało się kupić biletu.",
+                    );
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-60 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-400/50 transition"
+              >
+                {isLoading ? "Kupuję..." : "Kup bilet"}
               </button>
             </div>
           </div>
         </div>
+
+        <Toast {...toastProps} />
       </div>
     </Layout>
   );

@@ -23,8 +23,17 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface ApiDriver {
-  employeeNumber: number;
+  userID: number;
   position: string;
+  login: string;
+  role: string;
+  status: string;
+  profile?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  };
 }
 
 interface ApiScheduleEntry {
@@ -32,7 +41,7 @@ interface ApiScheduleEntry {
   date: string;
   shiftStartTime: string;
   shiftEndTime: string;
-  employee?: { employeeNumber: number };
+  employee?: { userID: number };
   employeeId?: number;
   trip?: { tripID?: number; route?: { routeID?: number } };
   tripId?: number;
@@ -94,19 +103,24 @@ export function DriverPortal() {
     new Date().toISOString().split("T")[0],
   );
 
-  const mapDriver = (driver: ApiDriver): UiDriver => ({
-    id: driver.employeeNumber.toString(),
-    name: `Kierowca ${driver.employeeNumber}`,
-    email: "—",
-    phone: "—",
-    licenseNumber: "—",
-    totalHours: 0,
-    yearsOfExperience: 0,
-  });
+  const mapDriver = (driver: ApiDriver): UiDriver => {
+    const name = driver.profile?.firstName
+      ? `${driver.profile.firstName} ${driver.profile.lastName ?? ""}`.trim()
+      : `Kierowca ${driver.userID}`;
+    return {
+      id: driver.userID.toString(),
+      name,
+      email: driver.profile?.email ?? "—",
+      phone: driver.profile?.phone ?? "—",
+      licenseNumber: "—",
+      totalHours: 0,
+      yearsOfExperience: 0,
+    };
+  };
 
   const mapSchedule = (entry: ApiScheduleEntry): UiDriverSchedule => {
     const driverId =
-      entry.employee?.employeeNumber?.toString() ??
+      entry.employee?.userID?.toString() ??
       entry.employeeId?.toString() ??
       "0";
     const routeId =

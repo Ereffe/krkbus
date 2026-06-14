@@ -15,12 +15,12 @@ interface ApiRoute {
   name: string;
 }
 
-interface ApiTrip {
-  tripID: number;
-  departureTime: string;
-  arrivalTime: string;
-  route?: { routeID: number; name?: string };
-  routeId?: number;
+interface ApiReservation {
+  id: number;
+  passenger: string;
+  seat: string;
+  routeId: string;
+  date: string;
 }
 
 interface UiTripRow {
@@ -34,10 +34,12 @@ interface UiTripRow {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem("token");
   const response = await fetch(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers ?? {}),
     },
   });
@@ -57,7 +59,7 @@ const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
 export function ReservationsBlock() {
   const [selectedRoute, setSelectedRoute] = useState<string>("");
   const [routes, setRoutes] = useState<ApiRoute[]>([]);
-  const [trips, setTrips] = useState<UiTripRow[]>([]);
+  const [reservations, setReservations] = useState<UiTripRow[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -65,20 +67,21 @@ export function ReservationsBlock() {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const [routesData, tripsData] = await Promise.all([
+      const [routesData, reservationsData] = await Promise.all([
         fetchJson<ApiRoute[]>(`${API_BASE_URL}/api/routes`),
-        fetchJson<ApiTrip[]>(`${API_BASE_URL}/trips`),
+        fetchJson<ApiReservation[]>(`${API_BASE_URL}/api/reservations`),
       ]);
+      
       setRoutes(routesData ?? []);
-      const mappedTrips = (tripsData ?? []).map((trip) => ({
-        id: trip.tripID,
-        passenger: "—",
-        seat: "—",
-        routeId:
-          trip.route?.routeID?.toString() ?? trip.routeId?.toString() ?? "—",
-        date: trip.departureTime?.split("T")[0] ?? "—",
+      
+      const mappedReservations = (reservationsData ?? []).map((res) => ({
+        id: res.id,
+        passenger: res.passenger,
+        seat: res.seat,
+        routeId: res.routeId,
+        date: res.date,
       }));
-      setTrips(mappedTrips);
+      setReservations(mappedReservations);
     } catch (error) {
       const message =
         error instanceof Error
@@ -97,13 +100,13 @@ export function ReservationsBlock() {
   const filteredReservations = useMemo(
     () =>
       selectedRoute
-        ? trips.filter((res) => res.routeId === selectedRoute)
-        : trips,
-    [selectedRoute, trips],
+        ? reservations.filter((res) => res.routeId === selectedRoute)
+        : reservations,
+    [selectedRoute, reservations],
   );
 
   return (
-    <Card className="shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
+    <Card className="bg-white dark:bg-slate-800 shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
       <CardHeader className="border-b dark:border-slate-700 pb-6">
         <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
           Przeglądaj Rezerwacje Miejsc
@@ -201,7 +204,7 @@ export function ReservationsBlock() {
           </Table>
         </div>
         {errorMessage && (
-          <p className="text-sm text-red-600 dark:text-red-300">
+          <p className="text-sm text-red-600 dark:text-red-300 mt-4">
             {errorMessage}
           </p>
         )}

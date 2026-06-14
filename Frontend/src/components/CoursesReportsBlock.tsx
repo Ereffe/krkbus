@@ -121,7 +121,7 @@ const CourseReportsBlock = () => {
     }, [aggregation, endDate, startDate, vehicleId, driverId]);
 
     return (
-        <Card className="shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
+        <Card className="bg-white dark:bg-slate-800 shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
             <CardHeader className="border-b dark:border-slate-700 pb-6 flex flex-row items-center justify-between">
                 <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
                     Raporty z kursów

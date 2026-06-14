@@ -29,7 +29,16 @@ export const fetchJson = async <T>(url: string, options: RequestInit = {}): Prom
     return null as T;
   }
 
-  return (await response.json()) as T;
+  const text = await response.text();
+  if (!text || text.trim().length === 0) {
+    return null as T;
+  }
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return null as T;
+  }
 };
 
 export const authApi = {

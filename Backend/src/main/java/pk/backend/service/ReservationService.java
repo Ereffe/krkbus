@@ -129,35 +129,73 @@ public class ReservationService {
 
     public ReservationDTO createReservationByRouteAndDate(ReservationCreateRequest request) {
         if (request.getReservationDate() == null) {
-            throw new RuntimeException("reservationDate is required");
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "reservationDate is required");
         }
         if (request.getSeatCount() == null || request.getSeatCount() <= 0) {
-            throw new RuntimeException("seatCount must be greater than 0");
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "seatCount must be greater than 0");
         }
         if (request.getRouteID() == null) {
-            throw new RuntimeException("routeID is required");
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "routeID is required");
         }
 
-        // Find trip by route and date
-        Trip trip = tripRepository.findAll().stream()
+
+        // Find trip by route and (optionally) date.
+        // Your UI sometimes provides only route context, so if reservationDate does not match any trip,
+        // we fall back to selecting the next available trip for this route.
+        //
+        // Preferred: route + same LocalDate of departure.
+        var byRoute = tripRepository.findAll().stream()
                 .filter(t -> t.getRoute() != null)
                 .filter(t -> request.getRouteID().equals(t.getRoute().getRouteID()))
-                .filter(t -> t.getDepartureTime() != null && t.getDepartureTime().toLocalDate().equals(request.getReservationDate()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Trip not found for given route/date"));
+                .filter(t -> t.getDepartureTime() != null)
+                .collect(Collectors.toList());
+
+        Trip trip;
+        if (request.getReservationDate() != null) {
+            trip = byRoute.stream()
+                    .filter(t -> t.getDepartureTime().toLocalDate().equals(request.getReservationDate()))
+                    .findFirst()
+                    .orElse(null);
+        } else {
+            trip = null;
+        }
+
+        if (trip == null) {
+            trip = byRoute.stream()
+                    .sorted(java.util.Comparator.comparing(Trip::getDepartureTime))
+                    .findFirst()
+                    .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                            org.springframework.http.HttpStatus.NOT_FOUND,
+                            "Trip not found for routeID=" + request.getRouteID() + (request.getReservationDate() != null ? ", reservationDate=" + request.getReservationDate() : "")
+                    ));
+        }
+
+
+
+
 
         // Find current logged-in client is out of scope (existing createReservation uses clientID).
         // For now, use clientID from JWT principal if available; otherwise require clientID from DTO endpoint.
         // We'll resolve client from security context.
-        var principal = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!(principal instanceof org.springframework.security.core.userdetails.User userDetails)) {
-            throw new RuntimeException("No authenticated user");
+        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "No authenticated user");
+        }
+
+        String username;
+        if (authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.UserDetails userDetails) {
+            username = userDetails.getUsername();
+        } else if (authentication.getPrincipal() instanceof String s) {
+            username = s;
+        } else {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Unsupported authentication principal");
         }
 
         Client client = clientRepository.findAll().stream()
-                .filter(c -> c.getLogin() != null && c.getLogin().equals(userDetails.getUsername()))
+                .filter(c -> c.getLogin() != null && c.getLogin().equals(username))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Client not found"));
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Client not found for authenticated user"));
+
 
 
         ReservationDTO reservationDTO = new ReservationDTO();
@@ -166,6 +204,46 @@ public class ReservationService {
         reservationDTO.setSeatCount(request.getSeatCount());
 
         return createReservation(reservationDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public List<java.util.Map<String, Object>> getAllReservationsDetailed() {
+        return reservationRepository.findAll().stream().map(res -> {
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", res.getReservationID());
+            
+            String passengerName = "—";
+            if (res.getClient() != null && res.getClient().getProfile() != null) {
+                String fName = res.getClient().getProfile().getFirstName() != null ? res.getClient().getProfile().getFirstName() : "";
+                String lName = res.getClient().getProfile().getLastName() != null ? res.getClient().getProfile().getLastName() : "";
+                passengerName = (fName + " " + lName).trim();
+                if (passengerName.isEmpty()) passengerName = res.getClient().getLogin();
+            }
+            map.put("passenger", passengerName);
+            
+            String seats = "—";
+            if (res.getTickets() != null && !res.getTickets().isEmpty()) {
+                seats = res.getTickets().stream()
+                        .map(t -> String.valueOf(t.getSeatNumber()))
+                        .collect(Collectors.joining(", "));
+            }
+            map.put("seat", seats);
+            
+            String routeId = "—";
+            String date = "—";
+            if (res.getTrip() != null) {
+                if (res.getTrip().getRoute() != null) {
+                    routeId = String.valueOf(res.getTrip().getRoute().getRouteID());
+                }
+                if (res.getTrip().getDepartureTime() != null) {
+                    date = res.getTrip().getDepartureTime().toLocalDate().toString();
+                }
+            }
+            map.put("routeId", routeId);
+            map.put("date", date);
+            
+            return map;
+        }).collect(Collectors.toList());
     }
 
     private ReservationDTO mapToDTO(Reservation reservation) {

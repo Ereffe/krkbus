@@ -9,11 +9,34 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface ApiDriver {
-  employeeNumber: number;
+  userID: number;
   position: string;
+  login: string;
+  role: string;
+  status: string;
+  profile?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  };
+}
+
+interface ApiTrip {
+  tripID: number;
+  departureTime: string;
+  arrivalTime: string;
+  route?: { routeID: number; name?: string };
 }
 
 interface ApiScheduleEntry {
@@ -21,17 +44,19 @@ interface ApiScheduleEntry {
   date: string;
   shiftStartTime: string;
   shiftEndTime: string;
-  employee?: { employeeNumber: number };
+  employee?: { userID: number };
   employeeId?: number;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem("token");
   const response = await fetch(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers ?? {}),
     },
   });
@@ -54,8 +79,17 @@ export function DriverScheduleBlock() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [drivers, setDrivers] = useState<ApiDriver[]>([]);
   const [schedules, setSchedules] = useState<ApiScheduleEntry[]>([]);
+  const [trips, setTrips] = useState<ApiTrip[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedDriverId, setSelectedDriverId] = useState<string>("");
+  const [formData, setFormData] = useState({
+    shiftStartTime: "",
+    shiftEndTime: "",
+    tripId: "",
+  });
 
   const selectedDate = (date ?? new Date()).toISOString().split("T")[0];
 
@@ -63,12 +97,14 @@ export function DriverScheduleBlock() {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const [driversData, schedulesData] = await Promise.all([
+      const [driversData, schedulesData, tripsData] = await Promise.all([
         fetchJson<ApiDriver[]>(`${API_BASE_URL}/api/drivers`),
         fetchJson<ApiScheduleEntry[]>(`${API_BASE_URL}/api/schedules`),
+        fetchJson<ApiTrip[]>(`${API_BASE_URL}/trips`).catch(() => [] as ApiTrip[]),
       ]);
       setDrivers(driversData ?? []);
       setSchedules(schedulesData ?? []);
+      setTrips(tripsData ?? []);
     } catch (error) {
       const message =
         error instanceof Error
@@ -89,7 +125,7 @@ export function DriverScheduleBlock() {
     const map = new Map<string, ApiScheduleEntry[]>();
     entries.forEach((entry) => {
       const driverId =
-        entry.employee?.employeeNumber?.toString() ??
+        entry.employee?.userID?.toString() ??
         entry.employeeId?.toString() ??
         "0";
       const list = map.get(driverId) ?? [];
@@ -99,8 +135,50 @@ export function DriverScheduleBlock() {
     return map;
   }, [schedules, selectedDate]);
 
+  const tripsForSelectedDate = useMemo(() => {
+    return trips.filter((t) => t.departureTime?.startsWith(selectedDate));
+  }, [trips, selectedDate]);
+
+  const openDialog = (driverId: string) => {
+    setSelectedDriverId(driverId);
+    setFormData({
+      shiftStartTime: "",
+      shiftEndTime: "",
+      tripId: "",
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleSaveSchedule = async () => {
+    if (!selectedDriverId || !formData.shiftStartTime || !formData.shiftEndTime) return;
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      await fetchJson<ApiScheduleEntry>(`${API_BASE_URL}/api/schedules`, {
+        method: "POST",
+        body: JSON.stringify({
+          date: selectedDate,
+          shiftStartTime: formData.shiftStartTime,
+          shiftEndTime: formData.shiftEndTime,
+          employeeId: parseInt(selectedDriverId),
+          tripId: formData.tripId ? parseInt(formData.tripId) : null,
+        }),
+      });
+      await loadData();
+      setIsDialogOpen(false);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Nie udało się zapisać grafiku.";
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <Card className="shadow-md dark:shadow-slate-900/50 border dark:border-slate-700 h-full">
+    <Card className="bg-white dark:bg-slate-800 shadow-md dark:shadow-slate-900/50 border dark:border-slate-700 h-full">
       <CardHeader className="border-b dark:border-slate-700 pb-6">
         <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
           Ustal Grafik Kierowców
@@ -132,36 +210,42 @@ export function DriverScheduleBlock() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {drivers.map((driver) => (
-                  <TableRow
-                    key={driver.employeeNumber}
-                    className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition"
-                  >
-                    <TableCell className="font-semibold text-gray-900 dark:text-white py-4">
-                      Kierowca {driver.employeeNumber}
-                    </TableCell>
-                    <TableCell className="text-gray-600 dark:text-gray-400 py-4">
-                      {schedulesByDriver.get(driver.employeeNumber.toString())
-                        ? schedulesByDriver
-                            .get(driver.employeeNumber.toString())
-                            ?.map(
-                              (entry) =>
-                                `${toTimeLabel(entry.shiftStartTime)}-${toTimeLabel(entry.shiftEndTime)}`,
-                            )
-                            .join(", ")
-                        : "Brak grafiku"}
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
-                      >
-                        Edytuj
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {drivers.map((driver) => {
+                  const name = driver.profile?.firstName
+                    ? `${driver.profile.firstName} ${driver.profile.lastName ?? ""}`.trim()
+                    : `Kierowca ${driver.userID}`;
+                  return (
+                    <TableRow
+                      key={driver.userID}
+                      className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition"
+                    >
+                      <TableCell className="font-semibold text-gray-900 dark:text-white py-4">
+                        {name}
+                      </TableCell>
+                      <TableCell className="text-gray-600 dark:text-gray-400 py-4">
+                        {schedulesByDriver.get(driver.userID.toString()) && schedulesByDriver.get(driver.userID.toString())!.length > 0
+                          ? schedulesByDriver
+                              .get(driver.userID.toString())
+                              ?.map(
+                                (entry) =>
+                                  `${toTimeLabel(entry.shiftStartTime)}-${toTimeLabel(entry.shiftEndTime)}`,
+                              )
+                              .join(", ")
+                          : "Brak grafiku na ten dzień"}
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openDialog(driver.userID.toString())}
+                          className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
+                        >
+                          Dodaj zmianę
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
                 {!isLoading && drivers.length === 0 && (
                   <TableRow>
                     <TableCell
@@ -182,6 +266,88 @@ export function DriverScheduleBlock() {
           )}
         </div>
       </CardContent>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 dark:text-white">
+              Dodaj zmianę na dzień {selectedDate}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Godzina start
+                </label>
+                <input
+                  type="time"
+                  value={formData.shiftStartTime}
+                  onChange={(e) =>
+                    setFormData({ ...formData, shiftStartTime: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Godzina koniec
+                </label>
+                <input
+                  type="time"
+                  value={formData.shiftEndTime}
+                  onChange={(e) =>
+                    setFormData({ ...formData, shiftEndTime: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Wycieczka (opcjonalnie)
+              </label>
+              <select
+                value={formData.tripId}
+                onChange={(e) =>
+                  setFormData({ ...formData, tripId: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+              >
+                <option value="">Wybierz wycieczkę...</option>
+                {tripsForSelectedDate.map((t) => (
+                  <option key={t.tripID} value={t.tripID.toString()}>
+                    Trasa: {t.route?.name ?? t.route?.routeID} ({t.departureTime.split('T')[1].slice(0, 5)})
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Pokazane są tylko wycieczki dla wybranego dnia.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
+            >
+              Anuluj
+            </Button>
+            <Button
+              onClick={handleSaveSchedule}
+              disabled={isLoading || !formData.shiftStartTime || !formData.shiftEndTime}
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white"
+            >
+              {isLoading ? "Zapisywanie..." : "Zapisz"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
