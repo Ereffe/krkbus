@@ -212,9 +212,12 @@ export function DriverScheduleBlock() {
               </TableHeader>
               <TableBody>
                 {drivers.map((driver) => {
+                  const firstName = driver.profile?.firstName;
+                  const lastName = driver.profile?.lastName;
+
                   const name =
-                    driver.profile.firstName && driver.profile.lastName
-                      ? `${driver.profile.firstName} ${driver.profile.lastName}`
+                    firstName && lastName
+                      ? `${firstName} ${lastName}`
                       : driver.employeeNumber != null
                         ? `Kierowca ${driver.employeeNumber}`
                         : `Kierowca —`;

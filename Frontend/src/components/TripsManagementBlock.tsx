@@ -434,7 +434,7 @@ export function TripsManagementBlock() {
                                     {drivers.map((d) => {
                                         const id = d.id ?? d.driverID ?? d.userID;
                                         const name = d.profile ? `${d.profile.firstName} ${d.profile.lastName}` : (d.firstName ? `${d.firstName} ${d.lastName}` : `Kierowca ${id}`);
-                                        return <option key={id} value={id}>{name}</option>;
+                                        return <option key={`${id}${name}`} value={id}>{name}</option>;
                                     })}
                                 </select>
                             </div>
