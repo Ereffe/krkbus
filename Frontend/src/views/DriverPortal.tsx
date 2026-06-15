@@ -23,17 +23,10 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface ApiDriver {
-  userID: number;
+  id: number;
+  firstName: string | null;
+  lastName: string | null;
   position: string;
-  login: string;
-  role: string;
-  status: string;
-  profile?: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-  };
 }
 
 interface ApiScheduleEntry {
@@ -104,14 +97,14 @@ export function DriverPortal() {
   );
 
   const mapDriver = (driver: ApiDriver): UiDriver => {
-    const name = driver.profile?.firstName
-      ? `${driver.profile.firstName} ${driver.profile.lastName ?? ""}`.trim()
-      : `Kierowca ${driver.userID}`;
+    const name = driver.firstName && driver.lastName
+      ? `${driver.firstName} ${driver.lastName}`.trim()
+      : `Kierowca ${driver.id}`;
     return {
-      id: driver.userID.toString(),
+      id: driver.id.toString(),
       name,
-      email: driver.profile?.email ?? "—",
-      phone: driver.profile?.phone ?? "—",
+      email: "—",
+      phone: "—",
       licenseNumber: "—",
       totalHours: 0,
       yearsOfExperience: 0,
