@@ -19,18 +19,18 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface ApiDriver {
-  userID: number;
+  employeeNumber: number | null;
+  employeeId?: number | null;
   position: string;
-  login: string;
-  role: string;
-  status: string;
-  profile?: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
+  scheduleEntries?: any[];
+  trips?: any[];
+  profile: {
+    firstName?: string;
+    lastName?: string;
   };
 }
+
+
 
 interface ApiTrip {
   tripID: number;
@@ -99,7 +99,8 @@ export function DriverScheduleBlock() {
     try {
       const [driversData, schedulesData, tripsData] = await Promise.all([
         fetchJson<ApiDriver[]>(`${API_BASE_URL}/api/drivers`),
-        fetchJson<ApiScheduleEntry[]>(`${API_BASE_URL}/api/schedules`),
+        fetchJson<ApiScheduleEntry[]>(`${API_BASE_URL}/api/schedules`).catch(() => [] as ApiScheduleEntry[]),
+
         fetchJson<ApiTrip[]>(`${API_BASE_URL}/trips`).catch(() => [] as ApiTrip[]),
       ]);
       setDrivers(driversData ?? []);
@@ -211,33 +212,42 @@ export function DriverScheduleBlock() {
               </TableHeader>
               <TableBody>
                 {drivers.map((driver) => {
-                  const name = driver.profile?.firstName
-                    ? `${driver.profile.firstName} ${driver.profile.lastName ?? ""}`.trim()
-                    : `Kierowca ${driver.userID}`;
+                  const name =
+                    driver.profile.firstName && driver.profile.lastName
+                      ? `${driver.profile.firstName} ${driver.profile.lastName}`
+                      : driver.employeeNumber != null
+                        ? `Kierowca ${driver.employeeNumber}`
+                        : `Kierowca —`;
+
                   return (
                     <TableRow
-                      key={driver.userID}
+                      key={String(driver.employeeNumber ?? "")}
+
                       className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition"
                     >
                       <TableCell className="font-semibold text-gray-900 dark:text-white py-4">
                         {name}
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-400 py-4">
-                        {schedulesByDriver.get(driver.userID.toString()) && schedulesByDriver.get(driver.userID.toString())!.length > 0
-                          ? schedulesByDriver
-                              .get(driver.userID.toString())
-                              ?.map(
+                        {(() => {
+                          const driverIdStr = String(driver.employeeNumber ?? "");
+
+                          const driverSchedules = schedulesByDriver.get(driverIdStr) ?? [];
+                          return driverSchedules.length > 0
+                            ? driverSchedules
+                              .map(
                                 (entry) =>
                                   `${toTimeLabel(entry.shiftStartTime)}-${toTimeLabel(entry.shiftEndTime)}`,
                               )
                               .join(", ")
-                          : "Brak grafiku na ten dzień"}
+                            : "Brak grafiku na ten dzień";
+                        })()}
                       </TableCell>
                       <TableCell className="py-4">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => openDialog(driver.userID.toString())}
+                          onClick={() => openDialog(String(driver.employeeNumber ?? ""))}
                           className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
                         >
                           Dodaj zmianę
