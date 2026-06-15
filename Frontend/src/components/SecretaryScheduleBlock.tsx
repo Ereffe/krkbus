@@ -19,6 +19,13 @@ import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { useT } from "@/i18n";
 
+interface ApiScheduleEntry {
+  scheduleID: number;
+  date: string;
+  shiftStartTime: string;
+  shiftEndTime: string;
+}
+
 interface ApiSecretary {
   userID: number;
   position: string;
@@ -31,6 +38,7 @@ interface ApiSecretary {
     email: string;
     phone: string;
   };
+  scheduleEntries?: ApiScheduleEntry[];
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -205,6 +213,9 @@ export function SecretaryScheduleBlock() {
                   ? `${secretary.profile.firstName} ${secretary.profile.lastName ?? ""}`.trim()
                   : `${t("app.owner.secretarySchedule.secretaryLabel")} ${secretary.userID}`;
 
+                const allEntries = (secretary.scheduleEntries || [])
+                  .sort((a, b) => a.date.localeCompare(b.date));
+
                 return (
                   <TableRow
                     key={secretary.userID}
@@ -216,8 +227,19 @@ export function SecretaryScheduleBlock() {
                     <TableCell className="text-gray-600 dark:text-gray-400 py-4">
                       {secretary.profile?.email ?? "—"}
                     </TableCell>
-                    <TableCell className="text-gray-600 dark:text-gray-400 py-4">
-                      {"—"}
+                    <TableCell className="text-gray-600 dark:text-gray-400 py-4 align-top">
+                      {allEntries.length > 0 ? (
+                        <div className="max-h-32 overflow-y-auto space-y-1 pr-2">
+                          {allEntries.map((s) => (
+                            <div key={s.scheduleID} className="text-sm whitespace-nowrap">
+                              <span className="font-medium text-gray-800 dark:text-gray-200">{s.date}</span>
+                              {" "}{s.shiftStartTime.slice(0, 5)} - {s.shiftEndTime.slice(0, 5)}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        "—"
+                      )}
                     </TableCell>
 
 
