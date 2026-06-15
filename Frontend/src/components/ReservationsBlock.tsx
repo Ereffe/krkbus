@@ -71,9 +71,9 @@ export function ReservationsBlock() {
         fetchJson<ApiRoute[]>(`${API_BASE_URL}/api/routes`),
         fetchJson<ApiReservation[]>(`${API_BASE_URL}/api/reservations`),
       ]);
-      
+
       setRoutes(routesData ?? []);
-      
+
       const mappedReservations = (reservationsData ?? []).map((res) => ({
         id: res.id,
         passenger: res.passenger,
@@ -180,13 +180,55 @@ export function ReservationsBlock() {
                     {reservation.date}
                   </TableCell>
                   <TableCell className="py-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
-                    >
-                      Szczegóły
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
+                        onClick={() => {
+                          // proste “szczegóły”: pokazują się w alert; docelowo można zrobić modal
+                          alert(
+                            `Rezerwacja #${reservation.id}\nPasażer: ${reservation.passenger}\nMiejsce: ${reservation.seat}\nTrasa: ${
+                              routes.find(
+                                (r) =>
+                                  r.routeID.toString() === reservation.routeId,
+                              )?.name ?? "—"
+                            }\nData: ${reservation.date}`,
+                          );
+                        }}
+                      >
+                        Szczegóły
+                      </Button>
+
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="bg-red-600 hover:bg-red-700"
+                        onClick={async () => {
+                          if (
+                            !confirm(`Anulować rezerwację #${reservation.id}?`)
+                          )
+                            return;
+                          try {
+                            await fetchJson(
+                              `${API_BASE_URL}/api/reservations/${reservation.id}/cancel`,
+                              {
+                                method: "POST",
+                              },
+                            );
+                            await loadData();
+                          } catch (e) {
+                            const msg =
+                              e instanceof Error
+                                ? e.message
+                                : "Nie udało się anulować rezerwacji.";
+                            setErrorMessage(msg);
+                          }
+                        }}
+                      >
+                        Anuluj
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
