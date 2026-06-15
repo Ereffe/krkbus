@@ -3,6 +3,7 @@ import { useMapEvents } from "react-leaflet";
 import type { Coordinate } from "@/types/bus";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useT } from "@/i18n";
 
 // Fix Leaflet icon issues
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -52,6 +53,8 @@ export function StopMapPicker({
   onCoordinateSelect,
   selectedCoordinate,
 }: StopMapPickerProps) {
+  const t = useT();
+
   // Default center on Poland
   const defaultCenter: [number, number] = [51.9194, 19.1451];
 
@@ -82,7 +85,7 @@ export function StopMapPicker({
           >
             <Popup>
               <div className="text-sm">
-                <p className="font-semibold">Wybrany przystanekk</p>
+                <p className="font-semibold">{t("app.owner.routes.selectedStop")}</p>
                 <p>
                   {selectedCoordinate.latitude.toFixed(4)},{" "}
                   {selectedCoordinate.longitude.toFixed(4)}
@@ -93,7 +96,7 @@ export function StopMapPicker({
         )}
       </MapContainer>
       <div className="bg-blue-50 dark:bg-blue-900/20 border-t border-gray-300 dark:border-slate-600 p-3 text-sm text-blue-900 dark:text-blue-300">
-        💡 Kliknij na mapę, aby wybrać lokalizację przystanku
+        {t("app.owner.routes.clickMapHint")}
       </div>
     </div>
   );

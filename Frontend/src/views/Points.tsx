@@ -6,6 +6,7 @@ import { mockUserPoints } from "@/data/mockRewards";
 import type { Reward } from "@/types/rewards";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Filter } from "lucide-react";
+import { useT } from "@/i18n";
 
 interface ApiReward {
   rewardID: number;
@@ -40,7 +41,7 @@ const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
 const mapApiReward = (reward: ApiReward): Reward => ({
   id: reward.rewardID.toString(),
   name: reward.name,
-  description: "Nagroda punktowa",
+  description: "reward.description",
   pointsCost: reward.pointCost,
   icon: "🎁",
   category: "discount",
@@ -55,6 +56,8 @@ type CategoryFilter =
   | "experience";
 
 export function Points() {
+  const t = useT();
+
   const [selectedCategory, setSelectedCategory] =
     useState<CategoryFilter>("all");
   const [userPoints, setUserPoints] = useState(mockUserPoints);
@@ -70,7 +73,7 @@ export function Points() {
       setRewards((data ?? []).map(mapApiReward));
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Nie udało się pobrać nagród.";
+        error instanceof Error ? error.message : t("app.points.error.fetchRewards");
       setErrorMessage(message);
     } finally {
       setIsLoading(false);
@@ -102,27 +105,27 @@ export function Points() {
   const categories: { id: CategoryFilter; label: string; count: number }[] = [
     {
       id: "all",
-      label: "Wszystkie",
+      label: t("app.points.filter.all"),
       count: rewards.length,
     },
     {
       id: "discount",
-      label: "Zniżki",
+      label: t("app.points.filter.discount"),
       count: rewards.filter((r) => r.category === "discount").length,
     },
     {
       id: "ticket",
-      label: "Bilety",
+      label: t("app.points.filter.ticket"),
       count: rewards.filter((r) => r.category === "ticket").length,
     },
     {
       id: "merchandise",
-      label: "Produkty",
+      label: t("app.points.filter.merchandise"),
       count: rewards.filter((r) => r.category === "merchandise").length,
     },
     {
       id: "experience",
-      label: "Doświadczenia",
+      label: t("app.points.filter.experience"),
       count: rewards.filter((r) => r.category === "experience").length,
     },
   ];
@@ -133,10 +136,10 @@ export function Points() {
         {/* Header */}
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Moje Punkty
+            {t("app.points.title")}
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400">
-            Zbieraj punkty z każdej przejazdu i wymieniaj je na nagrody
+            {t("app.points.subtitle")}
           </p>
         </div>
 
@@ -151,11 +154,11 @@ export function Points() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Dostępne Nagrody
+              {t("app.points.availableRewards")}
             </h2>
             <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
               <Filter className="w-5 h-5" />
-              <span className="text-sm font-medium">Filtruj</span>
+              <span className="text-sm font-medium">{t("app.points.filterLabel")}</span>
             </div>
           </div>
 
@@ -165,11 +168,10 @@ export function Points() {
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 rounded-full font-medium transition-all ${
-                  selectedCategory === category.id
+                className={`px-4 py-2 rounded-full font-medium transition-all ${selectedCategory === category.id
                     ? "bg-blue-600 text-white shadow-md dark:bg-blue-500"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-800 dark:text-gray-200 dark:hover:bg-slate-700"
-                }`}
+                  }`}
               >
                 {category.label}
                 <span className="ml-2 text-xs opacity-75">
@@ -201,7 +203,7 @@ export function Points() {
           {!isLoading && filteredRewards.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-600 dark:text-gray-400 text-lg">
-                Brak dostępnych nagród w tej kategorii
+                {t("app.points.noRewards")}
               </p>
             </div>
           )}
@@ -213,21 +215,19 @@ export function Points() {
         {/* Info Section */}
         <div className="bg-blue-50 border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800 rounded-lg p-6">
           <h3 className="font-bold text-blue-900 dark:text-blue-200 mb-3">
-            💡 Jak zdobywać punkty?
+            💡 {t("app.points.howToEarnTitle")}
           </h3>
           <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
             <li>
-              • Za każdą zakupioną bilet zyskujesz 10% wartości biletu w
-              punktach
+              • {t("app.points.howToEarn.rule1")}
             </li>
-            <li>• Bonusy powitalny dla nowych użytkowników: +200 punktów</li>
-            <li>• Program referalny: zaproś znajomych i zyskaj +50 punktów</li>
+            <li>• {t("app.points.howToEarn.rule2")}</li>
+            <li>• {t("app.points.howToEarn.rule3")}</li>
             <li>
-              • Awans na wyższy poziom: Bronze (500) → Silver → Gold (2000) →
-              Platinum (5000)
+              • {t("app.points.howToEarn.rule4")}
             </li>
             <li>
-              • Specjalne promocje i bonusy sezonowe dla wiernych użytkowników
+              • {t("app.points.howToEarn.rule5")}
             </li>
           </ul>
         </div>

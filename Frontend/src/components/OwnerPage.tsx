@@ -7,19 +7,21 @@ import { RoutesManagementBlock } from "./RoutesManagementBlock";
 import { TripsManagementBlock } from "./TripsManagementBlock";
 import { Layout } from "./Layout";
 import { VehiclesBlock } from "./VehiclesBlock";
+import { useT } from "@/i18n";
 
 export function OwnerPage() {
+  const t = useT();
+
   return (
     <Layout>
       <div className="space-y-8">
         {/* Header */}
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Panel Właściciela
+            {t("app.owner.title")}
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400">
-            Zarządzaj systemem, trasami, cenami, kontami i nagradzaj
-            użytkowników
+            {t("app.owner.subtitle")}
           </p>
         </div>
 

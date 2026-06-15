@@ -5,6 +5,7 @@ import { ArrowLeft, MapPin, Clock, Banknote, Zap } from "lucide-react";
 import type { BusRoute, BusStop } from "@/types/bus";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Toast, type ToastState } from "@/components/Toast";
+import { useT } from "@/i18n";
 
 
 
@@ -89,6 +90,7 @@ const calculateDistanceKm = (stops: BusStop[]) => {
 const mapApiRoute = (
   route: ApiRoute,
   priceByRouteId: Map<number, ApiPrice>,
+  noDataText: string
 ): BusRoute => {
   const stops: BusStop[] = (route.stops ?? []).map((stop) => ({
     id: stop.stopID.toString(),
@@ -100,7 +102,7 @@ const mapApiRoute = (
   }));
   const startStop = stops[0] ?? {
     id: "start",
-    name: "Brak danych",
+    name: noDataText,
     coordinate: { latitude: 0, longitude: 0 },
   };
   const endStop = stops[stops.length - 1] ?? startStop;
@@ -122,12 +124,14 @@ const mapApiRoute = (
       seniorTicket: price?.seniorTicket ?? 0,
       dayPass: price?.dayPass ?? 0,
     },
-    frequency: "Brak danych",
+    frequency: noDataText,
     distance: calculateDistanceKm(stops),
   };
 };
 
 export function RouteDetail() {
+  const t = useT();
+
   const [toast, setToast] = useState<ToastState>({
     open: false,
     variant: "success",
@@ -182,12 +186,12 @@ export function RouteDetail() {
           priceByRouteId.set(price.route.routeID, price);
         }
       });
-      setRoute(mapApiRoute(routeData, priceByRouteId));
+      setRoute(mapApiRoute(routeData, priceByRouteId, t("app.routeDetail.noData")));
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
-          : "Nie udało się pobrać szczegółów trasy.";
+          : t("app.routeDetail.fetchError");
       setErrorMessage(message);
     } finally {
       setIsLoading(false);
@@ -206,7 +210,7 @@ export function RouteDetail() {
         route.pricing.seniorTicket > 0),
     [route],
   );
-  const hasSchedule = route ? route.schedule.length > 0 : false;
+  const hasSchedule = route && route.schedule ? route.schedule.length > 0 : false;
   const canShowMap = route ? route.stops.length >= 2 : false;
 
   if (!route) {
@@ -215,14 +219,14 @@ export function RouteDetail() {
         <div className="text-center py-12">
           <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
             {isLoading
-              ? "Ładowanie trasy..."
-              : (errorMessage ?? "Trasa nie znaleziona")}
+              ? t("app.routeDetail.loading")
+              : (errorMessage ?? t("app.routeDetail.notFound"))}
           </p>
           <button
             onClick={() => navigate("/")}
             className="bg-blue-600 dark:bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition"
           >
-            Wróć do tras
+            {t("app.routeDetail.backToRoutes")}
           </button>
         </div>
       </Layout>
@@ -246,7 +250,7 @@ export function RouteDetail() {
           className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition font-medium"
         >
           <ArrowLeft className="w-5 h-5" />
-          Wróć do tras
+          {t("app.routeDetail.backToRoutes")}
         </button>
 
         {/* Header */}
@@ -254,7 +258,7 @@ export function RouteDetail() {
           <div className="flex items-start justify-between mb-4">
             <div>
               <div className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full px-6 py-2 font-bold text-2xl mb-3">
-                Linia {route.number}
+                {t("app.routeCard.line")} {route.number}
               </div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {route.name}
@@ -271,7 +275,7 @@ export function RouteDetail() {
               <MapPin className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0" />
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Odległość
+                  {t("app.routeDetail.distance")}
                 </p>
                 <p className="font-semibold text-gray-900 dark:text-white">
                   {route.distance} km
@@ -282,12 +286,12 @@ export function RouteDetail() {
               <Clock className="w-5 h-5 text-green-600 dark:text-green-400 shrink-0" />
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Częstotliwość
+                  {t("app.routeDetail.frequency")}
                 </p>
                 <p className="font-semibold text-gray-900 dark:text-white">
-                  {route.frequency !== "Brak danych"
+                  {route.frequency !== t("app.routeDetail.noData")
                     ? route.frequency
-                    : "Brak danych"}
+                    : t("app.routeDetail.noData")}
                 </p>
               </div>
             </div>
@@ -295,7 +299,7 @@ export function RouteDetail() {
               <Zap className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0" />
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Przystanków
+                  {t("app.routeDetail.stopsCount")}
                 </p>
                 <p className="font-semibold text-gray-900 dark:text-white">
                   {route.stops.length}
@@ -305,9 +309,9 @@ export function RouteDetail() {
             <div className="flex gap-3">
               <Banknote className="w-5 h-5 text-orange-600 dark:text-orange-400 shrink-0" />
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Cena</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t("app.routeDetail.price")}</p>
                 <p className="font-semibold text-gray-900 dark:text-white">
-                  {hasPricing ? `${currentPrice.toFixed(2)} zł` : "Brak danych"}
+                  {hasPricing ? `${currentPrice.toFixed(2)} zł` : t("app.routeDetail.noData")}
                 </p>
               </div>
             </div>
@@ -320,13 +324,13 @@ export function RouteDetail() {
             {/* Map */}
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md dark:shadow-slate-900/50 p-6 border dark:border-slate-700">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                Mapa trasy
+                {t("app.routeDetail.mapTitle")}
               </h2>
               {canShowMap ? (
                 <RouteMap route={route} />
               ) : (
                 <div className="rounded-lg border border-dashed border-gray-300 dark:border-slate-600 p-6 text-sm text-gray-500 dark:text-gray-400">
-                  Brak danych o trasie do wyświetlenia na mapie.
+                  {t("app.routeDetail.noMapData")}
                 </div>
               )}
             </div>
@@ -334,7 +338,7 @@ export function RouteDetail() {
             {/* Stops List */}
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md dark:shadow-slate-900/50 p-6 border dark:border-slate-700">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                Lista przystanków
+                {t("app.routeDetail.stopsListTitle")}
               </h2>
               <div className="space-y-3">
                 {route.stops.map((stop, index) => (
@@ -352,7 +356,7 @@ export function RouteDetail() {
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Współrzędne
+                        {t("app.routeDetail.coordinates")}
                       </p>
                       <p className="text-sm text-gray-700 dark:text-gray-300">
                         {stop.coordinate.latitude.toFixed(4)},{" "}
@@ -367,7 +371,7 @@ export function RouteDetail() {
             {/* Schedule */}
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md dark:shadow-slate-900/50 p-6 border dark:border-slate-700">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                Harmonogram
+                {t("app.routeDetail.scheduleTitle")}
               </h2>
               {hasSchedule ? (
                 <div className="overflow-x-auto">
@@ -375,13 +379,13 @@ export function RouteDetail() {
                     <thead>
                       <tr className="border-b-2 border-gray-200 dark:border-slate-600">
                         <th className="text-left py-2 px-4 text-gray-700 dark:text-gray-300 font-semibold">
-                          Odjazd
+                          {t("app.routeDetail.departure")}
                         </th>
                         <th className="text-left py-2 px-4 text-gray-700 dark:text-gray-300 font-semibold">
-                          Przyjazd
+                          {t("app.routeDetail.arrival")}
                         </th>
                         <th className="text-left py-2 px-4 text-gray-700 dark:text-gray-300 font-semibold">
-                          Dni
+                          {t("app.routeDetail.days")}
                         </th>
                       </tr>
                     </thead>
@@ -401,9 +405,9 @@ export function RouteDetail() {
                             {item.daysOfWeek.includes(1) &&
                               item.daysOfWeek.includes(5)
                               ? item.daysOfWeek.includes(6)
-                                ? "Codziennie"
-                                : "Dni robocze"
-                              : "Weekendy"}
+                                ? t("app.routeDetail.everyday")
+                                : t("app.routeDetail.workdays")
+                              : t("app.routeDetail.weekends")}
                           </td>
                         </tr>
                       ))}
@@ -412,7 +416,7 @@ export function RouteDetail() {
                 </div>
               ) : (
                 <div className="rounded-lg border border-dashed border-gray-300 dark:border-slate-600 p-6 text-sm text-gray-500 dark:text-gray-400">
-                  Harmonogram nie jest jeszcze dostępny dla tej trasy.
+                  {t("app.routeDetail.noSchedule")}
                 </div>
               )}
             </div>
@@ -422,24 +426,24 @@ export function RouteDetail() {
           <div className="lg:col-span-1">
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md dark:shadow-slate-900/50 p-6 sticky top-6 border dark:border-slate-700">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-                Typ biletu
+                {t("app.routeDetail.ticketType")}
               </h3>
               {hasPricing ? (
                 <div className="space-y-3 mb-8">
                   {[
                     {
                       id: "normal",
-                      label: "Bilet normalny",
+                      label: t("app.routeDetail.normalTicket"),
                       price: route.pricing.normalTicket,
                     },
                     {
                       id: "student",
-                      label: "Bilet studencki",
+                      label: t("app.routeDetail.studentTicket"),
                       price: route.pricing.studentTicket,
                     },
                     {
                       id: "senior",
-                      label: "Bilet seniorski",
+                      label: t("app.routeDetail.seniorTicket"),
                       price: route.pricing.seniorTicket,
                     },
                   ].map((option) => (
@@ -473,22 +477,22 @@ export function RouteDetail() {
                 </div>
               ) : (
                 <div className="rounded-lg border border-dashed border-gray-300 dark:border-slate-600 p-4 text-sm text-gray-500 dark:text-gray-400 mb-8">
-                  Cennik nie jest jeszcze dostępny dla tej trasy.
+                  {t("app.routeDetail.noPricing")}
                 </div>
               )}
 
               {/* Passe Info */}
               <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 mb-6 border border-gray-200 dark:border-slate-600">
                 <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Karnet dobowy
+                  {t("app.routeDetail.dayPass")}
                 </p>
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {hasPricing
                     ? `${route.pricing.dayPass.toFixed(2)} zł`
-                    : "Brak danych"}
+                    : t("app.routeDetail.noData")}
                 </p>
                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-                  Nieograniczony dostęp na dzień
+                  {t("app.routeDetail.unlimitedAccess")}
                 </p>
               </div>
 
@@ -529,15 +533,15 @@ export function RouteDetail() {
 
                     // “jak rezerwacje” => po sukcesie wyświetl komunikat jako toast
                     showToast({
-                      title: "Sukces",
-                      message: "Bilet został kupiony (utworzono rezerwację).",
+                      title: t("app.routeDetail.buySuccessTitle"),
+                      message: t("app.routeDetail.buySuccessMessage"),
                       variant: "success",
                     });
                   } catch (e) {
                     setErrorMessage(
                       e instanceof Error
                         ? e.message
-                        : "Nie udało się kupić biletu.",
+                        : t("app.routeDetail.buyError"),
                     );
                   } finally {
                     setIsLoading(false);
@@ -545,7 +549,7 @@ export function RouteDetail() {
                 }}
                 className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-60 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-400/50 transition"
               >
-                {isLoading ? "Kupuję..." : "Kup bilet"}
+                {isLoading ? t("app.routeDetail.buying") : t("app.routeDetail.buyTicket")}
               </button>
             </div>
           </div>

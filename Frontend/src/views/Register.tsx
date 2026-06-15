@@ -6,8 +6,10 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useT } from "@/i18n";
 
 export function Register() {
+  const t = useT();
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -30,7 +32,7 @@ export function Register() {
       const response = await authApi.register(form);
       setSuccessData(response);
     } catch (err: any) {
-      setError(err.message || "Nie udało się zarejestrować.");
+      setError(err.message || t("app.register.error"));
     } finally {
       setIsLoading(false);
     }
@@ -55,26 +57,26 @@ export function Register() {
             <div className="flex flex-col items-center mb-6">
               <CheckCircle2 className="w-16 h-16 text-green-500 mb-4" />
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center">
-                Rejestracja zakończona sukcesem!
+                {t("app.register.successTitle")}
               </h2>
             </div>
-            
+
             <Alert className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 mb-6">
-              <AlertTitle className="text-green-800 dark:text-green-300">Zapisz swoje dane logowania</AlertTitle>
+              <AlertTitle className="text-green-800 dark:text-green-300">{t("app.register.successAlertTitle")}</AlertTitle>
               <AlertDescription className="text-green-700 dark:text-green-400 mt-2">
                 <div className="space-y-2 font-mono bg-white dark:bg-slate-900 p-3 rounded border border-green-100 dark:border-green-800">
-                  <p><strong>Login:</strong> {successData.login}</p>
-                  <p><strong>Hasło:</strong> {successData.password}</p>
-                  <p><strong>Nr klienta:</strong> {successData.clientNumber}</p>
+                  <p><strong>{t("app.register.loginLabel")}:</strong> {successData.login}</p>
+                  <p><strong>{t("app.register.passwordLabel")}:</strong> {successData.password}</p>
+                  <p><strong>{t("app.register.clientNumberLabel")}:</strong> {successData.clientNumber}</p>
                 </div>
                 <p className="mt-4 text-sm font-sans">
-                  Na Twój adres email (<strong>{form.email}</strong>) został wysłany link aktywacyjny (symulacja).
+                  {t("app.register.activationEmailSent")} (<strong>{form.email}</strong>).
                 </p>
               </AlertDescription>
             </Alert>
 
             <Button onClick={handleProceed} className="w-full flex justify-center bg-green-600 hover:bg-green-700">
-              Przejdź do konta
+              {t("app.register.goToAccount")}
             </Button>
           </div>
         </div>
@@ -89,15 +91,15 @@ export function Register() {
           <Bus className="w-12 h-12 text-blue-600 dark:text-blue-400" />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-          Załóż konto w KrkBus
+          {t("app.register.title")}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-          Masz już konto?{" "}
+          {t("app.register.haveAccount")}{" "}
           <Link
             to="/login"
             className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
           >
-            Zaloguj się
+            {t("app.register.loginLink")}
           </Link>
         </p>
       </div>
@@ -113,7 +115,7 @@ export function Register() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Imię
+                {t("app.register.firstNameLabel")}
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -132,7 +134,7 @@ export function Register() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Nazwisko
+                {t("app.register.lastNameLabel")}
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -151,7 +153,7 @@ export function Register() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Data urodzenia
+                {t("app.register.dobLabel")}
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -170,7 +172,7 @@ export function Register() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Email
+                {t("app.register.emailLabel")}
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -190,7 +192,7 @@ export function Register() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Telefon
+                {t("app.register.phoneLabel")}
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -213,7 +215,7 @@ export function Register() {
                 className="w-full flex justify-center"
                 disabled={isLoading}
               >
-                {isLoading ? "Rejestracja..." : "Zarejestruj się"}
+                {isLoading ? t("app.register.registering") : t("app.register.submitButton")}
               </Button>
             </div>
           </form>

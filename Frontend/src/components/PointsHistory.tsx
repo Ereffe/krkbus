@@ -1,13 +1,15 @@
 import { mockUserPoints } from "@/data/mockRewards";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { useT } from "@/i18n";
 
 export function PointsHistory() {
+  const t = useT();
   const history = mockUserPoints.pointsHistory;
 
   return (
     <div className="bg-card text-card-foreground rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-bold text-foreground mb-6">
-        Historia Punktów
+        {t("app.points.history.title")}
       </h2>
 
       <div className="space-y-3">
@@ -19,11 +21,10 @@ export function PointsHistory() {
             {/* Left: Icon and Description */}
             <div className="flex items-center gap-3 flex-1">
               <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                  transaction.type === "earned"
-                    ? "bg-green-100 dark:bg-green-900/40"
-                    : "bg-red-100 dark:bg-red-900/40"
-                }`}
+                className={`flex items-center justify-center w-10 h-10 rounded-full ${transaction.type === "earned"
+                  ? "bg-green-100 dark:bg-green-900/40"
+                  : "bg-red-100 dark:bg-red-900/40"
+                  }`}
               >
                 {transaction.type === "earned" ? (
                   <ArrowDownRight className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -47,17 +48,18 @@ export function PointsHistory() {
 
             {/* Right: Points Amount */}
             <div
-              className={`text-right ${
-                transaction.type === "earned"
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-red-600 dark:text-red-400"
-              }`}
+              className={`text-right ${transaction.type === "earned"
+                ? "text-green-600 dark:text-green-400"
+                : "text-red-600 dark:text-red-400"
+                }`}
             >
               <p className="font-bold text-lg">
                 {transaction.type === "earned" ? "+" : "-"}
                 {transaction.amount}
               </p>
-              <p className="text-xs text-muted-foreground">punktów</p>
+              <p className="text-xs text-muted-foreground">
+                {t("app.points.pointsLabel")}
+              </p>
             </div>
           </div>
         ))}

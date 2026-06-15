@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCallback, useState } from "react";
 import { fetchJson } from "@/lib/api";
+import { useT } from "@/i18n";
 
 type Aggregation = "MONTH" | "YEAR";
 
@@ -50,6 +51,8 @@ function formatMoneyPLN(value: number) {
 }
 
 export function ReservationReportsBlock() {
+    const t = useT();
+
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -62,7 +65,7 @@ export function ReservationReportsBlock() {
 
     const buildRequest = (): ReservationReportRequest => {
         if (!startDate || !endDate) {
-            throw new Error("Wybierz zakres dat");
+            throw new Error(t("app.secretary.reports.selectDateRange"));
         }
 
         return {
@@ -87,7 +90,7 @@ export function ReservationReportsBlock() {
             setRows(data ?? []);
             setIsDialogOpen(false);
         } catch (e) {
-            setErrorMessage(e instanceof Error ? e.message : "Błąd generowania raportu");
+            setErrorMessage(e instanceof Error ? e.message : t("app.secretary.reports.generateError"));
         } finally {
             setIsLoading(false);
         }
@@ -115,7 +118,7 @@ export function ReservationReportsBlock() {
 
             if (!res.ok) {
                 const msg = await res.text();
-                throw new Error(msg || "Błąd eksportu CSV");
+                throw new Error(msg || t("app.secretary.reports.exportError"));
             }
 
             const blob = await res.blob();
@@ -123,14 +126,14 @@ export function ReservationReportsBlock() {
 
             const a = document.createElement("a");
             a.href = url;
-            a.download = `raport_rezerwacje_${aggregation}.csv`;
+            a.download = `report_reservations_${aggregation}.csv`;
             document.body.appendChild(a);
             a.click();
             a.remove();
 
             window.URL.revokeObjectURL(url);
         } catch (e) {
-            setErrorMessage(e instanceof Error ? e.message : "Błąd eksportu CSV");
+            setErrorMessage(e instanceof Error ? e.message : t("app.secretary.reports.exportError"));
         } finally {
             setIsLoading(false);
         }
@@ -140,7 +143,7 @@ export function ReservationReportsBlock() {
         <Card className="bg-white dark:bg-slate-800 shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
             <CardHeader className="border-b dark:border-slate-700 pb-6 flex flex-row items-center justify-between">
                 <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
-                    Raporty z rezerwacji
+                    {t("app.secretary.reports.reservationsTitle")}
                 </CardTitle>
                 <div className="flex gap-2">
                     <Button
@@ -148,7 +151,7 @@ export function ReservationReportsBlock() {
                         onClick={() => setIsDialogOpen(true)}
                         disabled={isLoading}
                     >
-                        Generuj
+                        {t("common.generate")}
                     </Button>
                     <Button
                         variant="outline"
@@ -156,7 +159,7 @@ export function ReservationReportsBlock() {
                         disabled={isLoading || rows.length === 0}
                         className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
                     >
-                        Eksport CSV
+                        {t("common.exportCsv")}
                     </Button>
                 </div>
             </CardHeader>
@@ -173,16 +176,16 @@ export function ReservationReportsBlock() {
                         <TableHeader>
                             <TableRow className="border-b dark:border-slate-700">
                                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                                    Okres
+                                    {t("app.secretary.reports.period")}
                                 </TableHead>
                                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                                    Liczba rezerwacji
+                                    {t("app.secretary.reports.reservationsCount")}
                                 </TableHead>
                                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                                    Liczba sprzedanych miejsc
+                                    {t("app.secretary.reports.seatsSold")}
                                 </TableHead>
                                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                                    Przychód
+                                    {t("app.secretary.reports.revenue")}
                                 </TableHead>
                             </TableRow>
                         </TableHeader>
@@ -211,7 +214,7 @@ export function ReservationReportsBlock() {
                             {!isLoading && rows.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={4} className="py-6 text-center text-gray-500 dark:text-gray-400">
-                                        Brak wyników. Wygeneruj raport.
+                                        {t("app.secretary.reports.noResults")}
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -224,14 +227,14 @@ export function ReservationReportsBlock() {
                 <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700 max-w-lg">
                     <DialogHeader>
                         <DialogTitle className="text-gray-900 dark:text-white">
-                            Wygeneruj raport
+                            {t("app.secretary.reports.generateReportTitle")}
                         </DialogTitle>
                     </DialogHeader>
 
                     <div className="space-y-4 py-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Od (data)
+                                {t("app.secretary.reports.dateFrom")}
                             </label>
                             <Input
                                 type="date"
@@ -243,7 +246,7 @@ export function ReservationReportsBlock() {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Do (data)
+                                {t("app.secretary.reports.dateTo")}
                             </label>
                             <Input
                                 type="date"
@@ -255,15 +258,15 @@ export function ReservationReportsBlock() {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Agregacja
+                                {t("app.secretary.reports.aggregation")}
                             </label>
                             <Select value={aggregation} onValueChange={(v) => setAggregation(v as Aggregation)}>
                                 <SelectTrigger className="bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600">
-                                    <SelectValue placeholder="Wybierz" />
+                                    <SelectValue placeholder={t("app.common.select")} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="MONTH">Miesięczna</SelectItem>
-                                    <SelectItem value="YEAR">Roczna</SelectItem>
+                                    <SelectItem value="MONTH">{t("app.secretary.reports.monthly")}</SelectItem>
+                                    <SelectItem value="YEAR">{t("app.secretary.reports.yearly")}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -276,14 +279,14 @@ export function ReservationReportsBlock() {
                             disabled={isLoading}
                             className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
                         >
-                            Anuluj
+                            {t("common.cancel")}
                         </Button>
                         <Button
                             onClick={handleGenerate}
                             disabled={isLoading || !startDate || !endDate}
                             className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isLoading ? "Generowanie..." : "Generuj"}
+                            {isLoading ? t("app.common.generating") : t("common.generate")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -291,4 +294,3 @@ export function ReservationReportsBlock() {
         </Card>
     );
 }
-

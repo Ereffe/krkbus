@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
+import { useT } from "@/i18n";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -93,6 +94,8 @@ const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
 };
 
 export function TripsManagementBlock() {
+    const t = useT();
+
     const [routes, setRoutes] = useState<ApiRoute[]>([]);
     const [trips, setTrips] = useState<any[]>([]);
     const [drivers, setDrivers] = useState<ApiDriver[]>([]);
@@ -146,7 +149,7 @@ export function TripsManagementBlock() {
                 setSelectedRouteId(routesData[0].routeID);
             }
         } catch (e) {
-            setErrorMessage(e instanceof Error ? e.message : "Nie udało się pobrać trips.");
+            setErrorMessage(e instanceof Error ? e.message : t("app.owner.trips.fetchError"));
         } finally {
             setIsLoading(false);
         }
@@ -182,9 +185,9 @@ export function TripsManagementBlock() {
     };
 
     const handleCreate = async () => {
-        if (draft.routeId === "") throw new Error("Wybierz trasę");
-        if (!draft.departureTime) throw new Error("Wprowadź datę i godzinę odjazdu");
-        if (!draft.arrivalTime) throw new Error("Wprowadź datę i godzinę przyjazdu");
+        if (draft.routeId === "") throw new Error(t("app.owner.trips.selectRoute"));
+        if (!draft.departureTime) throw new Error(t("app.owner.trips.enterDeparture"));
+        if (!draft.arrivalTime) throw new Error(t("app.owner.trips.enterArrival"));
 
         setIsLoading(true);
         setErrorMessage(null);
@@ -208,7 +211,7 @@ export function TripsManagementBlock() {
             await load();
             setIsDialogOpen(false);
         } catch (e) {
-            setErrorMessage(e instanceof Error ? e.message : "Nie udało się utworzyć tripa");
+            setErrorMessage(e instanceof Error ? e.message : t("app.owner.trips.createError"));
         } finally {
             setIsLoading(false);
         }
@@ -218,7 +221,7 @@ export function TripsManagementBlock() {
         <Card className="bg-white dark:bg-slate-800 shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
             <CardHeader className="border-b dark:border-slate-700 pb-6 flex flex-row items-center justify-between">
                 <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
-                    Zarządzaj Tripami (kursami)
+                    {t("app.owner.trips.title")}
                 </CardTitle>
                 <Button
                     onClick={openCreate}
@@ -226,7 +229,7 @@ export function TripsManagementBlock() {
                     className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white flex items-center gap-2"
                 >
                     <Plus className="w-4 h-4" />
-                    Dodaj Trip
+                    {t("app.owner.trips.addTrip")}
                 </Button>
             </CardHeader>
 
@@ -239,7 +242,7 @@ export function TripsManagementBlock() {
 
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Filtr po trasie
+                        {t("app.owner.trips.filterByRoute")}
                     </label>
                     <select
                         value={selectedRouteId}
@@ -259,25 +262,25 @@ export function TripsManagementBlock() {
                         <TableHeader>
                             <TableRow className="border-b dark:border-slate-700">
                                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                                    Trasa
+                                    {t("app.owner.trips.route")}
                                 </TableHead>
                                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                                    Odjazd
+                                    {t("app.owner.trips.departure")}
                                 </TableHead>
                                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                                    Przyjazd
+                                    {t("app.owner.trips.arrival")}
                                 </TableHead>
                                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                                    Cena
+                                    {t("app.owner.trips.price")}
                                 </TableHead>
                                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                                    Miejsca
+                                    {t("app.owner.trips.seats")}
                                 </TableHead>
                                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                                    Kierowca
+                                    {t("app.owner.trips.driver")}
                                 </TableHead>
                                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                                    Pojazd
+                                    {t("app.owner.trips.vehicle")}
                                 </TableHead>
                             </TableRow>
                         </TableHeader>
@@ -285,10 +288,10 @@ export function TripsManagementBlock() {
                         <TableBody>
                             {filteredTrips.map((t) => {
                                 const driver = drivers.find(d => (d.id ?? d.driverID ?? d.userID) === t.driverId);
-                                const driverName = driver ? (driver.profile ? `${driver.profile.firstName} ${driver.profile.lastName}` : (driver.firstName ? `${driver.firstName} ${driver.lastName}` : `Kierowca ${t.driverId}`)) : t.driverId;
+                                const driverName = driver ? (driver.profile ? `${driver.profile.firstName} ${driver.profile.lastName}` : (driver.firstName ? `${driver.firstName} ${driver.lastName}` : `${t("app.owner.trips.driver")} ${t.driverId}`)) : t.driverId;
 
                                 const vehicle = vehicles.find(v => (v.id ?? v.vehicleID) === t.vehicleId);
-                                const vehicleName = vehicle ? (vehicle.registrationNumber ?? vehicle.name ?? `Pojazd ${t.vehicleId}`) : t.vehicleId;
+                                const vehicleName = vehicle ? (vehicle.registrationNumber ?? vehicle.name ?? `${t("app.owner.trips.vehicle")} ${t.vehicleId}`) : t.vehicleId;
 
                                 return (
                                     <TableRow
@@ -326,7 +329,7 @@ export function TripsManagementBlock() {
                                         colSpan={7}
                                         className="py-8 text-center text-gray-500 dark:text-gray-400"
                                     >
-                                        Brak tripów dla tej trasy.
+                                        {t("app.owner.trips.noTrips")}
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -339,14 +342,14 @@ export function TripsManagementBlock() {
                 <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700 max-w-xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-gray-900 dark:text-white">
-                            Utwórz Trip
+                            {t("app.owner.trips.createTitle")}
                         </DialogTitle>
                     </DialogHeader>
 
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Trasa
+                                {t("app.owner.trips.route")}
                             </label>
                             <select
                                 value={draft.routeId}
@@ -355,7 +358,7 @@ export function TripsManagementBlock() {
                                 }
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
                             >
-                                <option value="">Wybierz trasę</option>
+                                <option value="">{t("app.owner.trips.selectRouteOption")}</option>
                                 {routes.map((r) => (
                                     <option key={r.routeID} value={r.routeID}>
                                         {r.name}
@@ -367,7 +370,7 @@ export function TripsManagementBlock() {
                         <div className="grid grid-cols-1 gap-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Odjazd
+                                    {t("app.owner.trips.departure")}
                                 </label>
                                 <Input
                                     type="datetime-local"
@@ -379,7 +382,7 @@ export function TripsManagementBlock() {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Przyjazd
+                                    {t("app.owner.trips.arrival")}
                                 </label>
                                 <Input
                                     type="datetime-local"
@@ -394,26 +397,26 @@ export function TripsManagementBlock() {
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Cena (basePrice)
+                                    {t("app.owner.trips.priceLabel")}
                                 </label>
                                 <Input
                                     value={draft.basePrice}
                                     onChange={(e) =>
                                         setDraft((d) => ({ ...d, basePrice: e.target.value }))
                                     }
-                                    placeholder="np. 10"
+                                    placeholder={t("app.owner.trips.pricePlaceholder")}
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Dostępne miejsca
+                                    {t("app.owner.trips.seatsLabel")}
                                 </label>
                                 <Input
                                     value={draft.availableSeats}
                                     onChange={(e) =>
                                         setDraft((d) => ({ ...d, availableSeats: e.target.value }))
                                     }
-                                    placeholder="np. 50"
+                                    placeholder={t("app.owner.trips.seatsPlaceholder")}
                                 />
                             </div>
                         </div>
@@ -421,7 +424,7 @@ export function TripsManagementBlock() {
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Kierowca
+                                    {t("app.owner.trips.driver")}
                                 </label>
                                 <select
                                     value={draft.driverId}
@@ -430,17 +433,17 @@ export function TripsManagementBlock() {
                                     }
                                     className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
                                 >
-                                    <option value="">Brak kierowcy</option>
+                                    <option value="">{t("app.owner.trips.noDriver")}</option>
                                     {drivers.map((d) => {
                                         const id = d.id ?? d.driverID ?? d.userID;
-                                        const name = d.profile ? `${d.profile.firstName} ${d.profile.lastName}` : (d.firstName ? `${d.firstName} ${d.lastName}` : `Kierowca ${id}`);
+                                        const name = d.profile ? `${d.profile.firstName} ${d.profile.lastName}` : (d.firstName ? `${d.firstName} ${d.lastName}` : `${t("app.owner.trips.driver")} ${id}`);
                                         return <option key={`${id}${name}`} value={id}>{name}</option>;
                                     })}
                                 </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Pojazd
+                                    {t("app.owner.trips.vehicle")}
                                 </label>
                                 <select
                                     value={draft.vehicleId}
@@ -449,10 +452,10 @@ export function TripsManagementBlock() {
                                     }
                                     className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
                                 >
-                                    <option value="">Brak pojazdu</option>
+                                    <option value="">{t("app.owner.trips.noVehicle")}</option>
                                     {vehicles.map((v) => {
                                         const id = v.id ?? v.vehicleID;
-                                        const name = v.registrationNumber ?? v.name ?? `Pojazd ${id}`;
+                                        const name = v.registrationNumber ?? v.name ?? `${t("app.owner.trips.vehicle")} ${id}`;
                                         return <option key={id} value={id}>{name}</option>;
                                     })}
                                 </select>
@@ -467,14 +470,14 @@ export function TripsManagementBlock() {
                             disabled={isLoading}
                             className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
                         >
-                            Anuluj
+                            {t("common.cancel")}
                         </Button>
                         <Button
                             onClick={handleCreate}
                             disabled={isLoading}
                             className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white"
                         >
-                            {isLoading ? "Tworzenie..." : "Utwórz"}
+                            {isLoading ? t("app.common.creating") : t("common.create")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

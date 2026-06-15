@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
+import { useT } from "@/i18n";
 
 interface ApiSecretary {
   userID: number;
@@ -68,6 +69,8 @@ const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
 };
 
 export function SecretaryScheduleBlock() {
+  const t = useT();
+
   const [secretaries, setSecretaries] = useState<ApiSecretary[]>([]);
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -95,7 +98,7 @@ export function SecretaryScheduleBlock() {
       const message =
         error instanceof Error
           ? error.message
-          : "Nie udało się pobrać listy sekretariatu.";
+          : t("app.owner.secretarySchedule.fetchError");
       setErrorMessage(message);
     } finally {
       setIsLoading(false);
@@ -141,7 +144,7 @@ export function SecretaryScheduleBlock() {
       const message =
         error instanceof Error
           ? error.message
-          : "Nie udało się zaktualizować grafiku.";
+          : t("app.owner.secretarySchedule.saveError");
       setErrorMessage(message);
     } finally {
       setIsLoading(false);
@@ -154,14 +157,14 @@ export function SecretaryScheduleBlock() {
       <CardHeader className="border-b dark:border-slate-700 pb-6">
         <div className="flex items-center justify-between">
           <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
-            Ustaw Grafik Pracy Sekretariatu
+            {t("app.owner.secretarySchedule.title")}
           </CardTitle>
           <Button
             onClick={() => setIsDialogOpen(true)}
             className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Dodaj Sekretarkę
+            {t("app.owner.secretarySchedule.addSecretary")}
           </Button>
         </div>
       </CardHeader>
@@ -178,20 +181,20 @@ export function SecretaryScheduleBlock() {
             <TableHeader>
               <TableRow className="border-b dark:border-slate-700">
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Imię i Nazwisko
+                  {t("app.owner.secretarySchedule.fullName")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Email
+                  {t("app.owner.secretarySchedule.email")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Aktualny Grafik
+                  {t("app.owner.secretarySchedule.currentSchedule")}
                 </TableHead>
 
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Telefon
+                  {t("app.owner.secretarySchedule.phone")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Akcje
+                  {t("app.owner.secretarySchedule.actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -200,7 +203,7 @@ export function SecretaryScheduleBlock() {
               {secretaries.map((secretary) => {
                 const name = secretary.profile?.firstName
                   ? `${secretary.profile.firstName} ${secretary.profile.lastName ?? ""}`.trim()
-                  : `Sekretarz ${secretary.userID}`;
+                  : `${t("app.owner.secretarySchedule.secretaryLabel")} ${secretary.userID}`;
 
                 return (
                   <TableRow
@@ -227,7 +230,7 @@ export function SecretaryScheduleBlock() {
                         size="sm"
                         className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:text-blue-900 dark:border-blue-600 dark:text-blue-400 dark:hover:bg-slate-700 dark:hover:text-blue-300"
                       >
-                        Edytuj Grafik
+                        {t("app.owner.secretarySchedule.editSchedule")}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -240,7 +243,7 @@ export function SecretaryScheduleBlock() {
                     colSpan={5}
                     className="py-6 text-center text-gray-500 dark:text-gray-400"
                   >
-                    Brak sekretariatu do wyświetlenia
+                    {t("app.owner.secretarySchedule.noData")}
                   </TableCell>
                 </TableRow>
               )}
@@ -253,14 +256,14 @@ export function SecretaryScheduleBlock() {
         <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700">
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">
-              Ustaw grafik sekretarki
+              {t("app.owner.secretarySchedule.dialogTitle")}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Sekretarka
+                {t("app.owner.secretarySchedule.secretary")}
               </label>
               <select
                 value={selectedSecretaryId}
@@ -274,11 +277,11 @@ export function SecretaryScheduleBlock() {
                 }}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
               >
-                <option value="">Wybierz sekretarkę</option>
+                <option value="">{t("app.owner.secretarySchedule.selectSecretary")}</option>
                 {secretaries.map((s) => {
                   const name = s.profile?.firstName
                     ? `${s.profile.firstName} ${s.profile.lastName ?? ""}`.trim()
-                    : `Sekretarka ${s.userID}`;
+                    : `${t("app.owner.secretarySchedule.secretary")} ${s.userID}`;
                   return (
                     <option key={s.userID} value={s.userID.toString()}>
                       {name}
@@ -291,7 +294,7 @@ export function SecretaryScheduleBlock() {
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Data od
+                  {t("app.owner.secretarySchedule.dateFrom")}
                 </label>
                 <input
                   type="date"
@@ -305,7 +308,7 @@ export function SecretaryScheduleBlock() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Data do
+                  {t("app.owner.secretarySchedule.dateTo")}
                 </label>
                 <input
                   type="date"
@@ -320,7 +323,7 @@ export function SecretaryScheduleBlock() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Godzina start
+                    {t("app.owner.secretarySchedule.startTime")}
                   </label>
                   <input
                     type="time"
@@ -334,7 +337,7 @@ export function SecretaryScheduleBlock() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Godzina koniec
+                    {t("app.owner.secretarySchedule.endTime")}
                   </label>
                   <input
                     type="time"
@@ -356,14 +359,14 @@ export function SecretaryScheduleBlock() {
               onClick={() => setIsDialogOpen(false)}
               className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
             >
-              Anuluj
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={handleUpdateSchedule}
               disabled={isLoading || !selectedSecretaryId}
               className="bg-blue-600 hover:bg-blue-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-60 disabled:cursor-not-allowed dark:bg-blue-700 dark:hover:bg-blue-600 dark:focus:ring-blue-400/50"
             >
-              {isLoading ? "Zapisywanie..." : "Dodaj"}
+              {isLoading ? t("app.common.saving") : t("common.add")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -371,4 +374,3 @@ export function SecretaryScheduleBlock() {
     </Card>
   );
 }
-

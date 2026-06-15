@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { Search, MapPin, Clock, CalendarDays, Ticket } from "lucide-react";
+import { useT } from "@/i18n";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -45,6 +46,8 @@ const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
 };
 
 export function ClientBookingBlock() {
+    const t = useT();
+
     const [routes, setRoutes] = useState<ApiRoute[]>([]);
     const [trips, setTrips] = useState<ApiTrip[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -74,7 +77,7 @@ export function ClientBookingBlock() {
             setRoutes(routesData ?? []);
             setTrips(tripsData ?? []);
         } catch (error) {
-            setErrorMessage("Nie udało się pobrać danych o trasach i kursach.");
+            setErrorMessage(t("app.booking.fetchError"));
         } finally {
             setIsLoading(false);
         }
@@ -104,7 +107,7 @@ export function ClientBookingBlock() {
     const handleBook = async () => {
         if (!selectedTrip) return;
         if (!bookingDraft.passenger.trim() || !bookingDraft.seat.trim()) {
-            setErrorMessage("Wypełnij wszystkie pola (pasażer i miejsce).");
+            setErrorMessage(t("app.booking.fillAllFields"));
             return;
         }
 
@@ -122,14 +125,14 @@ export function ClientBookingBlock() {
                 }),
             });
 
-            setSuccessMessage("Pomyślnie zarezerwowano miejsce!");
+            setSuccessMessage(t("app.booking.bookSuccess"));
             setIsDialogOpen(false);
             await loadData(); // Odświeżenie danych (aby zaktualizować ilość miejsc itp.)
 
             // Ukryj powiadomienie po kilku sekundach
             setTimeout(() => setSuccessMessage(null), 4000);
         } catch (error) {
-            setErrorMessage(error instanceof Error ? error.message : "Błąd podczas rezerwacji.");
+            setErrorMessage(error instanceof Error ? error.message : t("app.booking.bookError"));
         } finally {
             setIsLoading(false);
         }
@@ -140,7 +143,7 @@ export function ClientBookingBlock() {
             <CardHeader className="border-b dark:border-slate-700 pb-6">
                 <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold flex items-center gap-2">
                     <Search className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                    Wyszukaj i Zarezerwuj Przejazd
+                    {t("app.booking.title")}
                 </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
@@ -154,14 +157,14 @@ export function ClientBookingBlock() {
                 <div className="flex flex-col md:flex-row gap-4 mb-8 bg-gray-50 dark:bg-slate-700/50 p-4 rounded-xl border dark:border-slate-700">
                     <div className="flex-1">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                            <MapPin className="w-4 h-4" /> Trasa
+                            <MapPin className="w-4 h-4" /> {t("app.booking.route")}
                         </label>
                         <select
                             value={selectedRouteId}
                             onChange={(e) => setSelectedRouteId(e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
                         >
-                            <option value="">Wszystkie trasy</option>
+                            <option value="">{t("app.booking.allRoutes")}</option>
                             {routes.map((r) => (
                                 <option key={r.routeID} value={r.routeID}>{r.name}</option>
                             ))}
@@ -169,7 +172,7 @@ export function ClientBookingBlock() {
                     </div>
                     <div className="flex-1">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                            <CalendarDays className="w-4 h-4" /> Data
+                            <CalendarDays className="w-4 h-4" /> {t("app.booking.date")}
                         </label>
                         <Input
                             type="date"
@@ -185,18 +188,18 @@ export function ClientBookingBlock() {
                     <Table className="w-full">
                         <TableHeader>
                             <TableRow className="border-b dark:border-slate-700">
-                                <TableHead className="text-gray-900 dark:text-white font-semibold">Trasa</TableHead>
-                                <TableHead className="text-gray-900 dark:text-white font-semibold">Odjazd</TableHead>
-                                <TableHead className="text-gray-900 dark:text-white font-semibold">Cena</TableHead>
-                                <TableHead className="text-gray-900 dark:text-white font-semibold">Wolne miejsca</TableHead>
-                                <TableHead className="text-gray-900 dark:text-white font-semibold text-right">Akcja</TableHead>
+                                <TableHead className="text-gray-900 dark:text-white font-semibold">{t("app.booking.route")}</TableHead>
+                                <TableHead className="text-gray-900 dark:text-white font-semibold">{t("app.booking.departure")}</TableHead>
+                                <TableHead className="text-gray-900 dark:text-white font-semibold">{t("app.booking.price")}</TableHead>
+                                <TableHead className="text-gray-900 dark:text-white font-semibold">{t("app.booking.availableSeats")}</TableHead>
+                                <TableHead className="text-gray-900 dark:text-white font-semibold text-right">{t("app.booking.action")}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {filteredTrips.map((trip) => (
                                 <TableRow key={trip.tripID} className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50">
                                     <TableCell className="py-4 font-medium text-gray-900 dark:text-white">
-                                        {trip.route?.name ?? `Trasa ${trip.routeId}`}
+                                        {trip.route?.name ?? `${t("app.booking.route")} ${trip.routeId}`}
                                     </TableCell>
                                     <TableCell className="py-4 text-gray-600 dark:text-gray-300 flex flex-col">
                                         <span>{trip.departureTime.split("T")[0]}</span>
@@ -207,7 +210,7 @@ export function ClientBookingBlock() {
                                         {trip.availableSeats > 0 ? (
                                             <span className="text-green-600 dark:text-green-400 font-semibold">{trip.availableSeats}</span>
                                         ) : (
-                                            <span className="text-red-500 font-semibold">Brak miejsc</span>
+                                            <span className="text-red-500 font-semibold">{t("app.booking.noSeats")}</span>
                                         )}
                                     </TableCell>
                                     <TableCell className="py-4 text-right">
@@ -216,7 +219,7 @@ export function ClientBookingBlock() {
                                             disabled={trip.availableSeats <= 0}
                                             className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
                                         >
-                                            <Ticket className="w-4 h-4" /> Rezerwuj
+                                            <Ticket className="w-4 h-4" /> {t("app.booking.book")}
                                         </Button>
                                     </TableCell>
                                 </TableRow>
@@ -224,7 +227,7 @@ export function ClientBookingBlock() {
                             {filteredTrips.length === 0 && !isLoading && (
                                 <TableRow>
                                     <TableCell colSpan={5} className="py-8 text-center text-gray-500 dark:text-gray-400">
-                                        Brak dostępnych kursów dla podanych kryteriów.
+                                        {t("app.booking.noTrips")}
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -237,7 +240,7 @@ export function ClientBookingBlock() {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700">
                     <DialogHeader>
-                        <DialogTitle className="text-gray-900 dark:text-white text-xl">Rezerwacja Miejsca</DialogTitle>
+                        <DialogTitle className="text-gray-900 dark:text-white text-xl">{t("app.booking.modalTitle")}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         {errorMessage && (
@@ -246,27 +249,27 @@ export function ClientBookingBlock() {
                             </div>
                         )}
                         <div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg border dark:border-slate-600 text-sm">
-                            <p><strong>Trasa:</strong> {selectedTrip?.route?.name}</p>
-                            <p><strong>Odjazd:</strong> {selectedTrip?.departureTime.replace("T", " ")}</p>
-                            <p><strong>Cena:</strong> {selectedTrip?.basePrice.toFixed(2)} zł</p>
+                            <p><strong>{t("app.booking.route")}:</strong> {selectedTrip?.route?.name}</p>
+                            <p><strong>{t("app.booking.departure")}:</strong> {selectedTrip?.departureTime.replace("T", " ")}</p>
+                            <p><strong>{t("app.booking.price")}:</strong> {selectedTrip?.basePrice.toFixed(2)} zł</p>
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Imię i Nazwisko Pasażera
+                                {t("app.booking.passengerName")}
                             </label>
                             <Input
-                                placeholder="np. Jan Kowalski"
+                                placeholder={t("app.booking.placeholderPassenger")}
                                 value={bookingDraft.passenger}
                                 onChange={(e) => setBookingDraft(d => ({ ...d, passenger: e.target.value }))}
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Wybór miejsca (np. numer miejsca lub "Dowolne")
+                                {t("app.booking.seatSelection")}
                             </label>
                             <Input
-                                placeholder="np. 12A"
+                                placeholder={t("app.booking.placeholderSeat")}
                                 value={bookingDraft.seat}
                                 onChange={(e) => setBookingDraft(d => ({ ...d, seat: e.target.value }))}
                             />
@@ -274,10 +277,10 @@ export function ClientBookingBlock() {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isLoading}>
-                            Anuluj
+                            {t("app.booking.cancel")}
                         </Button>
                         <Button onClick={handleBook} disabled={isLoading || !bookingDraft.passenger || !bookingDraft.seat} className="bg-blue-600 hover:bg-blue-700 text-white">
-                            {isLoading ? "Przetwarzanie..." : "Potwierdź rezerwację"}
+                            {isLoading ? t("app.booking.processing") : t("app.booking.confirm")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

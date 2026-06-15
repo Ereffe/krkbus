@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
+import { useT } from "@/i18n";
 
 interface Reward {
   id: number;
@@ -57,6 +58,8 @@ const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
 };
 
 export function RewardsBlock() {
+  const t = useT();
+
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -85,7 +88,7 @@ export function RewardsBlock() {
       setRewards((data ?? []).map(mapApiReward));
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Nie udało się pobrać nagród.";
+        error instanceof Error ? error.message : t("app.owner.rewards.fetchError");
       setErrorMessage(message);
     } finally {
       setIsLoading(false);
@@ -125,7 +128,7 @@ export function RewardsBlock() {
         const message =
           error instanceof Error
             ? error.message
-            : "Nie udało się dodać nagrody.";
+            : t("app.owner.rewards.saveError");
         setErrorMessage(message);
       } finally {
         setIsLoading(false);
@@ -138,14 +141,14 @@ export function RewardsBlock() {
       <CardHeader className="border-b dark:border-slate-700 pb-6">
         <div className="flex items-center justify-between">
           <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
-            Ustaw Nagrody Za Punkty
+            {t("app.owner.rewards.title")}
           </CardTitle>
           <Button
             onClick={() => setIsDialogOpen(true)}
             className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Dodaj Nagrodę
+            {t("app.owner.rewards.addReward")}
           </Button>
         </div>
       </CardHeader>
@@ -160,19 +163,19 @@ export function RewardsBlock() {
             <TableHeader>
               <TableRow className="border-b dark:border-slate-700">
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Nazwa Nagrody
+                  {t("app.owner.rewards.rewardName")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Kategoria
+                  {t("app.owner.rewards.category")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Koszty Punktów
+                  {t("app.owner.rewards.pointsCost")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Dostępne
+                  {t("app.owner.rewards.available")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Akcje
+                  {t("app.owner.rewards.actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -186,10 +189,16 @@ export function RewardsBlock() {
                     {reward.name}
                   </TableCell>
                   <TableCell className="text-gray-600 dark:text-gray-400 py-4">
-                    {reward.category}
+                    {reward.category === "discount"
+                      ? t("app.owner.rewards.categories.discount")
+                      : reward.category === "ticket"
+                        ? t("app.owner.rewards.categories.ticket")
+                        : reward.category === "merchandise"
+                          ? t("app.owner.rewards.categories.merchandise")
+                          : t("app.owner.rewards.categories.experience")}
                   </TableCell>
                   <TableCell className="text-gray-900 dark:text-white font-medium py-4">
-                    {reward.pointsCost} pkt
+                    {reward.pointsCost} {t("app.owner.rewards.pts")}
                   </TableCell>
                   <TableCell className="text-gray-600 dark:text-gray-400 py-4">
                     {reward.available}
@@ -200,7 +209,7 @@ export function RewardsBlock() {
                       size="sm"
                       className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
                     >
-                      Edytuj
+                      {t("common.edit")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -211,7 +220,7 @@ export function RewardsBlock() {
                     colSpan={5}
                     className="py-8 text-center text-gray-500 dark:text-gray-400"
                   >
-                    Brak nagród do wyświetlenia
+                    {t("app.owner.rewards.noRewards")}
                   </TableCell>
                 </TableRow>
               )}
@@ -224,13 +233,13 @@ export function RewardsBlock() {
         <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700">
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">
-              Dodaj Nową Nagrodę
+              {t("app.owner.rewards.addTitle")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Nazwa Nagrody
+                {t("app.owner.rewards.rewardName")}
               </label>
               <input
                 type="text"
@@ -239,12 +248,12 @@ export function RewardsBlock() {
                   setFormData({ ...formData, name: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                placeholder="np. Bilet 50% taniej"
+                placeholder={t("app.owner.rewards.namePlaceholder")}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Kategoria
+                {t("app.owner.rewards.category")}
               </label>
               <select
                 value={formData.category}
@@ -253,15 +262,15 @@ export function RewardsBlock() {
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
               >
-                <option value="discount">Zniżka</option>
-                <option value="ticket">Bilet</option>
-                <option value="merchandise">Produkt</option>
-                <option value="experience">Doświadczenie</option>
+                <option value="discount">{t("app.owner.rewards.categories.discount")}</option>
+                <option value="ticket">{t("app.owner.rewards.categories.ticket")}</option>
+                <option value="merchandise">{t("app.owner.rewards.categories.merchandise")}</option>
+                <option value="experience">{t("app.owner.rewards.categories.experience")}</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Koszt Punktów
+                {t("app.owner.rewards.pointsCost")}
               </label>
               <input
                 type="number"
@@ -270,12 +279,12 @@ export function RewardsBlock() {
                   setFormData({ ...formData, pointsCost: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                placeholder="np. 500"
+                placeholder={t("app.owner.rewards.pointsPlaceholder")}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Dostępne Sztuki
+                {t("app.owner.rewards.available")}
               </label>
               <input
                 type="number"
@@ -284,7 +293,7 @@ export function RewardsBlock() {
                   setFormData({ ...formData, available: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                placeholder="np. 150"
+                placeholder={t("app.owner.rewards.availablePlaceholder")}
               />
             </div>
           </div>
@@ -294,14 +303,14 @@ export function RewardsBlock() {
               onClick={() => setIsDialogOpen(false)}
               className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
             >
-              Anuluj
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={handleAddReward}
               disabled={isLoading}
               className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white"
             >
-              {isLoading ? "Zapisywanie..." : "Dodaj"}
+              {isLoading ? t("app.common.saving") : t("app.owner.rewards.add")}
             </Button>
           </DialogFooter>
         </DialogContent>

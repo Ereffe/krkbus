@@ -6,8 +6,11 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useT } from "@/i18n";
 
 export function Login() {
+  const t = useT();
+
   const [loginForm, setLoginForm] = useState({ login: "", password: "" });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +25,7 @@ export function Login() {
     try {
       const response = await authApi.login(loginForm);
       login(response.token, response.role);
-      
+
       // Redirect based on role
       switch (response.role) {
         case "ADMIN":
@@ -39,7 +42,7 @@ export function Login() {
           navigate("/");
       }
     } catch (err: any) {
-      setError(err.message || "Nie udało się zalogować. Sprawdź dane i spróbuj ponownie.");
+      setError(err.message || t("app.login.error"));
     } finally {
       setIsLoading(false);
     }
@@ -52,17 +55,18 @@ export function Login() {
           <Bus className="w-12 h-12 text-blue-600 dark:text-blue-400" />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-          Zaloguj się do KrkBus
+          {t("app.login.title")}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-          Lub{" "}
+          {t("app.login.subtitle")}
           <Link
             to="/register"
             className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
           >
-            załóż nowe konto
+            {t("app.login.createAccount")}
           </Link>
         </p>
+
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -79,8 +83,9 @@ export function Login() {
                 htmlFor="login"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                Login
+                {t("app.login.loginLabel")}
               </label>
+
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-gray-400" />
@@ -94,8 +99,9 @@ export function Login() {
                     setLoginForm({ ...loginForm, login: e.target.value })
                   }
                   className="pl-10"
-                  placeholder="Twój login"
+                  placeholder={t("app.login.loginLabel")}
                 />
+
               </div>
             </div>
 
@@ -104,7 +110,8 @@ export function Login() {
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                Hasło
+                {t("app.login.passwordLabel")}
+
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -130,7 +137,7 @@ export function Login() {
                 className="w-full flex justify-center"
                 disabled={isLoading}
               >
-                {isLoading ? "Logowanie..." : "Zaloguj się"}
+                {isLoading ? t("app.login.loggingIn") : t("app.login.submitButton")}
               </Button>
             </div>
           </form>

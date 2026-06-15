@@ -17,6 +17,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useT } from "@/i18n";
 
 interface ApiDriver {
   employeeNumber: number | null;
@@ -76,6 +77,8 @@ const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
 const toTimeLabel = (value?: string) => value?.slice(0, 5) ?? "—";
 
 export function DriverScheduleBlock() {
+  const t = useT();
+
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [drivers, setDrivers] = useState<ApiDriver[]>([]);
   const [schedules, setSchedules] = useState<ApiScheduleEntry[]>([]);
@@ -110,7 +113,7 @@ export function DriverScheduleBlock() {
       const message =
         error instanceof Error
           ? error.message
-          : "Nie udało się pobrać grafiku kierowców.";
+          : t("app.secretary.schedule.fetchError");
       setErrorMessage(message);
     } finally {
       setIsLoading(false);
@@ -137,7 +140,7 @@ export function DriverScheduleBlock() {
   }, [schedules, selectedDate]);
 
   const tripsForSelectedDate = useMemo(() => {
-    return trips.filter((t) => t.departureTime?.startsWith(selectedDate));
+    return trips.filter((trip) => trip.departureTime?.startsWith(selectedDate));
   }, [trips, selectedDate]);
 
   const openDialog = (driverId: string) => {
@@ -171,7 +174,7 @@ export function DriverScheduleBlock() {
       const message =
         error instanceof Error
           ? error.message
-          : "Nie udało się zapisać grafiku.";
+          : t("app.secretary.schedule.saveError");
       setErrorMessage(message);
     } finally {
       setIsLoading(false);
@@ -182,7 +185,7 @@ export function DriverScheduleBlock() {
     <Card className="bg-white dark:bg-slate-800 shadow-md dark:shadow-slate-900/50 border dark:border-slate-700 h-full">
       <CardHeader className="border-b dark:border-slate-700 pb-6">
         <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
-          Ustal Grafik Kierowców
+          {t("app.secretary.schedule.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-6">
@@ -200,13 +203,13 @@ export function DriverScheduleBlock() {
               <TableHeader>
                 <TableRow className="border-b dark:border-slate-700">
                   <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                    Kierowca
+                    {t("app.secretary.schedule.driver")}
                   </TableHead>
                   <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                    Aktualny Grafik
+                    {t("app.secretary.schedule.currentSchedule")}
                   </TableHead>
                   <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                    Akcje
+                    {t("app.secretary.schedule.actions")}
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -219,8 +222,8 @@ export function DriverScheduleBlock() {
                     firstName && lastName
                       ? `${firstName} ${lastName}`
                       : driver.employeeNumber != null
-                        ? `Kierowca ${driver.employeeNumber}`
-                        : `Kierowca —`;
+                        ? `${t("app.secretary.schedule.driver")} ${driver.employeeNumber}`
+                        : `${t("app.secretary.schedule.driver")} —`;
 
                   return (
                     <TableRow
@@ -243,7 +246,7 @@ export function DriverScheduleBlock() {
                                   `${toTimeLabel(entry.shiftStartTime)}-${toTimeLabel(entry.shiftEndTime)}`,
                               )
                               .join(", ")
-                            : "Brak grafiku na ten dzień";
+                            : t("app.secretary.schedule.noScheduleForDay");
                         })()}
                       </TableCell>
                       <TableCell className="py-4">
@@ -253,7 +256,7 @@ export function DriverScheduleBlock() {
                           onClick={() => openDialog(String(driver.employeeNumber ?? ""))}
                           className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
                         >
-                          Dodaj zmianę
+                          {t("app.secretary.schedule.addShift")}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -265,7 +268,7 @@ export function DriverScheduleBlock() {
                       colSpan={3}
                       className="py-6 text-center text-gray-500 dark:text-gray-400"
                     >
-                      Brak kierowców do wyświetlenia
+                      {t("app.secretary.schedule.noDrivers")}
                     </TableCell>
                   </TableRow>
                 )}
@@ -284,7 +287,7 @@ export function DriverScheduleBlock() {
         <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700">
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">
-              Dodaj zmianę na dzień {selectedDate}
+              {t("app.secretary.schedule.addShiftForDay")} {selectedDate}
             </DialogTitle>
           </DialogHeader>
 
@@ -292,7 +295,7 @@ export function DriverScheduleBlock() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Godzina start
+                  {t("app.secretary.schedule.startTime")}
                 </label>
                 <input
                   type="time"
@@ -306,7 +309,7 @@ export function DriverScheduleBlock() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Godzina koniec
+                  {t("app.secretary.schedule.endTime")}
                 </label>
                 <input
                   type="time"
@@ -321,7 +324,7 @@ export function DriverScheduleBlock() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Wycieczka (opcjonalnie)
+                {t("app.secretary.schedule.tripOptional")}
               </label>
               <select
                 value={formData.tripId}
@@ -330,15 +333,15 @@ export function DriverScheduleBlock() {
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
               >
-                <option value="">Wybierz wycieczkę...</option>
-                {tripsForSelectedDate.map((t) => (
-                  <option key={t.tripID} value={t.tripID.toString()}>
-                    Trasa: {t.route?.name ?? t.route?.routeID} ({t.departureTime.split('T')[1].slice(0, 5)})
+                <option value="">{t("app.secretary.schedule.selectTrip")}</option>
+                {tripsForSelectedDate.map((trip) => (
+                  <option key={trip.tripID} value={trip.tripID.toString()}>
+                    {t("app.secretary.schedule.route")} {trip.route?.name ?? trip.route?.routeID} ({trip.departureTime.split('T')[1].slice(0, 5)})
                   </option>
                 ))}
               </select>
               <p className="text-xs text-gray-500 mt-1">
-                Pokazane są tylko wycieczki dla wybranego dnia.
+                {t("app.secretary.schedule.tripsNote")}
               </p>
             </div>
           </div>
@@ -349,14 +352,14 @@ export function DriverScheduleBlock() {
               onClick={() => setIsDialogOpen(false)}
               className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
             >
-              Anuluj
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={handleSaveSchedule}
               disabled={isLoading || !formData.shiftStartTime || !formData.shiftEndTime}
               className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white"
             >
-              {isLoading ? "Zapisywanie..." : "Zapisz"}
+              {isLoading ? t("app.common.saving") : t("common.save")}
             </Button>
           </DialogFooter>
         </DialogContent>
