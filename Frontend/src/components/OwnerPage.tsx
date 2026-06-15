@@ -6,6 +6,7 @@ import { PricingBlock } from "./PricingBlock";
 import { RoutesManagementBlock } from "./RoutesManagementBlock";
 import { TripsManagementBlock } from "./TripsManagementBlock";
 import { Layout } from "./Layout";
+import { VehiclesBlock } from "./VehiclesBlock";
 
 export function OwnerPage() {
   return (
@@ -25,6 +26,11 @@ export function OwnerPage() {
         {/* Zarządzaj Systemem */}
         <section>
           <SystemBlock />
+        </section>
+
+        {/* Zarządzaj Pojazdami */}
+        <section>
+          <VehiclesBlock />
         </section>
 
         {/* Ustaw Trasy */}
