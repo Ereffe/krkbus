@@ -225,6 +225,10 @@ export function SecretaryScheduleBlock() {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => {
+                          setSelectedSecretaryId(secretary.userID.toString());
+                          setIsDialogOpen(true);
+                        }}
                         className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:text-blue-900 dark:border-blue-600 dark:text-blue-400 dark:hover:bg-slate-700 dark:hover:text-blue-300"
                       >
                         Edytuj Grafik
@@ -371,4 +375,3 @@ export function SecretaryScheduleBlock() {
     </Card>
   );
 }
-
