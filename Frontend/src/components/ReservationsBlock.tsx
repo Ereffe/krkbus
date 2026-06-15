@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useT } from "@/i18n";
 
 interface ApiRoute {
   routeID: number;
@@ -57,6 +58,8 @@ const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
 };
 
 export function ReservationsBlock() {
+  const t = useT();
+
   const [selectedRoute, setSelectedRoute] = useState<string>("");
   const [routes, setRoutes] = useState<ApiRoute[]>([]);
   const [reservations, setReservations] = useState<UiTripRow[]>([]);
@@ -86,7 +89,7 @@ export function ReservationsBlock() {
       const message =
         error instanceof Error
           ? error.message
-          : "Nie udało się pobrać rezerwacji.";
+          : t("app.secretary.reservations.fetchError");
       setErrorMessage(message);
     } finally {
       setIsLoading(false);
@@ -109,30 +112,28 @@ export function ReservationsBlock() {
     <Card className="bg-white dark:bg-slate-800 shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
       <CardHeader className="border-b dark:border-slate-700 pb-6">
         <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
-          Przeglądaj Rezerwacje Miejsc
+          {t("app.secretary.reservations.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-6">
         <div className="mb-6 flex flex-wrap gap-3">
           <button
             onClick={() => setSelectedRoute("")}
-            className={`px-4 py-2 rounded-full font-medium transition-all ${
-              selectedRoute === ""
-                ? "bg-blue-600 text-white shadow-md"
-                : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
-            }`}
+            className={`px-4 py-2 rounded-full font-medium transition-all ${selectedRoute === ""
+              ? "bg-blue-600 text-white shadow-md"
+              : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
+              }`}
           >
-            Wszystkie
+            {t("app.secretary.reservations.all")}
           </button>
           {routes.map((route) => (
             <button
               key={route.routeID}
               onClick={() => setSelectedRoute(route.routeID.toString())}
-              className={`px-4 py-2 rounded-full font-medium transition-all ${
-                selectedRoute === route.routeID.toString()
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
-              }`}
+              className={`px-4 py-2 rounded-full font-medium transition-all ${selectedRoute === route.routeID.toString()
+                ? "bg-blue-600 text-white shadow-md"
+                : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
+                }`}
             >
               {route.name}
             </button>
@@ -143,19 +144,19 @@ export function ReservationsBlock() {
             <TableHeader>
               <TableRow className="border-b dark:border-slate-700">
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Pasażer
+                  {t("app.secretary.reservations.passenger")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Miejsce
+                  {t("app.secretary.reservations.seat")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Trasa
+                  {t("app.secretary.reservations.route")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Data
+                  {t("app.secretary.reservations.date")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Akcje
+                  {t("app.secretary.reservations.actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -180,55 +181,13 @@ export function ReservationsBlock() {
                     {reservation.date}
                   </TableCell>
                   <TableCell className="py-4">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
-                        onClick={() => {
-                          // proste “szczegóły”: pokazują się w alert; docelowo można zrobić modal
-                          alert(
-                            `Rezerwacja #${reservation.id}\nPasażer: ${reservation.passenger}\nMiejsce: ${reservation.seat}\nTrasa: ${
-                              routes.find(
-                                (r) =>
-                                  r.routeID.toString() === reservation.routeId,
-                              )?.name ?? "—"
-                            }\nData: ${reservation.date}`,
-                          );
-                        }}
-                      >
-                        Szczegóły
-                      </Button>
-
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="bg-red-600 hover:bg-red-700"
-                        onClick={async () => {
-                          if (
-                            !confirm(`Anulować rezerwację #${reservation.id}?`)
-                          )
-                            return;
-                          try {
-                            await fetchJson(
-                              `${API_BASE_URL}/api/reservations/${reservation.id}/cancel`,
-                              {
-                                method: "POST",
-                              },
-                            );
-                            await loadData();
-                          } catch (e) {
-                            const msg =
-                              e instanceof Error
-                                ? e.message
-                                : "Nie udało się anulować rezerwacji.";
-                            setErrorMessage(msg);
-                          }
-                        }}
-                      >
-                        Anuluj
-                      </Button>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
+                    >
+                      {t("common.details")}
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -238,7 +197,7 @@ export function ReservationsBlock() {
                     colSpan={5}
                     className="py-6 text-center text-gray-500 dark:text-gray-400"
                   >
-                    Brak rezerwacji do wyświetlenia
+                    {t("app.secretary.reservations.noReservations")}
                   </TableCell>
                 </TableRow>
               )}

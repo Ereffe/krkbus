@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Users, Clock, Star, Award, AlertCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useT } from "@/i18n";
 
 interface ApiDriver {
   userID: number;
@@ -85,6 +86,8 @@ const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
 const toTimeLabel = (value?: string) => value?.slice(0, 5) ?? "—";
 
 export function DriverDashboard() {
+  const t = useT();
+
   const [drivers, setDrivers] = useState<UiDriver[]>([]);
   const [schedules, setSchedules] = useState<UiDriverSchedule[]>([]);
   const [selectedDriver, setSelectedDriver] = useState<UiDriver | null>(null);
@@ -109,13 +112,13 @@ export function DriverDashboard() {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "on-duty":
-        return "Na służbie";
+        return t("app.admin.driverDashboard.statusOnDuty");
       case "available":
-        return "Dostępny";
+        return t("app.admin.driverDashboard.statusAvailable");
       case "break":
-        return "Przerwa";
+        return t("app.admin.driverDashboard.statusBreak");
       case "off-duty":
-        return "Wolny";
+        return t("app.admin.driverDashboard.statusOffDuty");
       default:
         return status;
     }
@@ -124,7 +127,7 @@ export function DriverDashboard() {
   const mapDriver = (driver: ApiDriver): UiDriver => {
     const name = driver.profile?.firstName
       ? `${driver.profile.firstName} ${driver.profile.lastName ?? ""}`.trim()
-      : `Kierowca ${driver.userID}`;
+      : `${t("app.driver.driverLabel")} ${driver.userID}`;
     return {
       id: driver.userID.toString(),
       name,
@@ -191,7 +194,7 @@ export function DriverDashboard() {
       const message =
         error instanceof Error
           ? error.message
-          : "Nie udało się pobrać danych kierowców.";
+          : t("app.admin.driverDashboard.fetchError");
       setErrorMessage(message);
     } finally {
       setIsLoading(false);
@@ -216,10 +219,10 @@ export function DriverDashboard() {
         {/* Header */}
         <div>
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Zarządzanie kierowcami
+            {t("app.admin.driverDashboard.title")}
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400">
-            Monitoruj status i harmonogramy kierowców
+            {t("app.admin.driverDashboard.subtitle")}
           </p>
         </div>
 
@@ -230,7 +233,7 @@ export function DriverDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Łączna liczba kierowców
+                    {t("app.admin.driverDashboard.totalDrivers")}
                   </p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white">
                     {drivers.length}
@@ -246,7 +249,7 @@ export function DriverDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Na służbie
+                    {t("app.admin.driverDashboard.onDuty")}
                   </p>
                   <p className="text-3xl font-bold text-green-600 dark:text-green-400">
                     {
@@ -265,7 +268,7 @@ export function DriverDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Dostępni
+                    {t("app.admin.driverDashboard.available")}
                   </p>
                   <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                     {
@@ -286,7 +289,7 @@ export function DriverDashboard() {
             <Card className="bg-white dark:bg-slate-800 border dark:border-slate-700">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white">
-                  Lista kierowców
+                  {t("app.admin.driverDashboard.driversList")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -295,11 +298,10 @@ export function DriverDashboard() {
                     <button
                       key={driver.id}
                       onClick={() => setSelectedDriver(driver)}
-                      className={`w-full text-left p-3 rounded-lg transition ${
-                        selectedDriver?.id === driver.id
+                      className={`w-full text-left p-3 rounded-lg transition ${selectedDriver?.id === driver.id
                           ? "bg-blue-100 dark:bg-blue-900 border-2 border-blue-600"
                           : "bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600"
-                      }`}
+                        }`}
                     >
                       <p className="font-semibold text-gray-900 dark:text-white">
                         {driver.name}
@@ -326,7 +328,7 @@ export function DriverDashboard() {
                   ))}
                   {!isLoading && drivers.length === 0 && (
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Brak kierowców do wyświetlenia
+                      {t("app.admin.driverDashboard.noDrivers")}
                     </p>
                   )}
                   {errorMessage && (
@@ -345,7 +347,7 @@ export function DriverDashboard() {
             <Card className="bg-white dark:bg-slate-800 border dark:border-slate-700">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white">
-                  Szczegóły kierowcy
+                  {t("app.admin.driverDashboard.driverDetails")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -354,7 +356,7 @@ export function DriverDashboard() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Imię i nazwisko
+                          {t("app.admin.driverDashboard.fullName")}
                         </p>
                         <p className="font-semibold text-gray-900 dark:text-white">
                           {selectedDriver.name}
@@ -362,7 +364,7 @@ export function DriverDashboard() {
                       </div>
                       <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Status
+                          {t("app.admin.driverDashboard.status")}
                         </p>
                         <span
                           className={`inline-block text-sm px-3 py-1 rounded-full ${getStatusColor(
@@ -374,7 +376,7 @@ export function DriverDashboard() {
                       </div>
                       <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Email
+                          {t("app.admin.driverDashboard.email")}
                         </p>
                         <p className="font-semibold text-gray-900 dark:text-white">
                           {selectedDriver.email}
@@ -382,7 +384,7 @@ export function DriverDashboard() {
                       </div>
                       <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Telefon
+                          {t("app.admin.driverDashboard.phone")}
                         </p>
                         <p className="font-semibold text-gray-900 dark:text-white">
                           {selectedDriver.phone}
@@ -390,7 +392,7 @@ export function DriverDashboard() {
                       </div>
                       <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Numer prawa jazdy
+                          {t("app.admin.driverDashboard.licenseNumber")}
                         </p>
                         <p className="font-semibold text-gray-900 dark:text-white">
                           {selectedDriver.licenseNumber}
@@ -402,29 +404,29 @@ export function DriverDashboard() {
                       <div className="grid grid-cols-3 gap-4">
                         <div>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Doświadczenie
+                            {t("app.admin.driverDashboard.experience")}
                           </p>
                           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                             {selectedDriver.yearsOfExperience || "—"}
                           </p>
                           <p className="text-xs text-gray-600 dark:text-gray-400">
-                            lat
+                            {t("app.admin.driverDashboard.years")}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Godzin pracy
+                            {t("app.admin.driverDashboard.workHours")}
                           </p>
                           <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                             {selectedDriver.totalHours || "—"}
                           </p>
                           <p className="text-xs text-gray-600 dark:text-gray-400">
-                            h
+                            {t("app.admin.driverDashboard.hours")}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Data zatrudnienia
+                            {t("app.admin.driverDashboard.joiningDate")}
                           </p>
                           <p className="text-sm font-bold text-gray-900 dark:text-white">
                             {new Date(
@@ -438,7 +440,7 @@ export function DriverDashboard() {
                     {selectedDriver.assignedRoutes.length > 0 && (
                       <div className="border-t dark:border-slate-700 pt-4">
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                          Przypisane trasy
+                          {t("app.admin.driverDashboard.assignedRoutes")}
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {selectedDriver.assignedRoutes.map((routeId) => (
@@ -455,7 +457,7 @@ export function DriverDashboard() {
                   </div>
                 ) : (
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Brak danych kierowcy do wyświetlenia
+                    {t("app.admin.driverDashboard.noDriverData")}
                   </div>
                 )}
               </CardContent>
@@ -465,7 +467,7 @@ export function DriverDashboard() {
             <Card className="bg-white dark:bg-slate-800 border dark:border-slate-700">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white">
-                  Harmonogram
+                  {t("app.admin.driverDashboard.schedule")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -475,16 +477,16 @@ export function DriverDashboard() {
                       <TableHeader>
                         <TableRow className="bg-gray-50 dark:bg-slate-700">
                           <TableHead className="text-gray-900 dark:text-gray-300">
-                            Data
+                            {t("app.admin.driverDashboard.date")}
                           </TableHead>
                           <TableHead className="text-gray-900 dark:text-gray-300">
-                            Godziny
+                            {t("app.admin.driverDashboard.time")}
                           </TableHead>
                           <TableHead className="text-gray-900 dark:text-gray-300">
-                            Trasa
+                            {t("app.admin.driverDashboard.route")}
                           </TableHead>
                           <TableHead className="text-gray-900 dark:text-gray-300">
-                            Status
+                            {t("app.admin.driverDashboard.status")}
                           </TableHead>
                         </TableRow>
                       </TableHeader>
@@ -507,23 +509,22 @@ export function DriverDashboard() {
                             </TableCell>
                             <TableCell>
                               <span
-                                className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                                  schedule.status === "completed"
+                                className={`px-3 py-1 rounded-full text-sm font-semibold ${schedule.status === "completed"
                                     ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300"
                                     : schedule.status === "in-progress"
                                       ? "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300"
                                       : schedule.status === "scheduled"
                                         ? "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300"
                                         : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300"
-                                }`}
+                                  }`}
                               >
                                 {schedule.status === "completed"
-                                  ? "Ukończone"
+                                  ? t("app.admin.driverDashboard.scheduleStatus.completed")
                                   : schedule.status === "in-progress"
-                                    ? "W trakcie"
+                                    ? t("app.admin.driverDashboard.scheduleStatus.inProgress")
                                     : schedule.status === "scheduled"
-                                      ? "Zaplanowane"
-                                      : "Anulowane"}
+                                      ? t("app.admin.driverDashboard.scheduleStatus.scheduled")
+                                      : t("app.admin.driverDashboard.scheduleStatus.cancelled")}
                               </span>
                             </TableCell>
                           </TableRow>
@@ -535,7 +536,7 @@ export function DriverDashboard() {
                   <div className="flex items-center justify-center py-8">
                     <AlertCircle className="w-5 h-5 text-gray-400 mr-2" />
                     <p className="text-gray-600 dark:text-gray-400">
-                      Brak zaplanowanych tras
+                      {t("app.admin.driverDashboard.noScheduledRoutes")}
                     </p>
                   </div>
                 )}

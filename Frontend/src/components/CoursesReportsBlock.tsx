@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCallback, useState } from "react";
 import { fetchJson } from "@/lib/api";
+import { useT } from "@/i18n";
 
 type Aggregation = "DAY" | "WEEK" | "MONTH" | "YEAR";
 
@@ -36,6 +37,8 @@ type CourseReportRow = {
 };
 
 const CourseReportsBlock = () => {
+    const t = useT();
+
     const [aggregation, setAggregation] = useState<Aggregation>("MONTH");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
@@ -48,7 +51,7 @@ const CourseReportsBlock = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const buildRequest = () => {
-        if (!startDate || !endDate) throw new Error("Wybierz zakres dat");
+        if (!startDate || !endDate) throw new Error(t("app.secretary.reports.selectDateRange"));
 
         return {
             startDate,
@@ -74,7 +77,7 @@ const CourseReportsBlock = () => {
             setRows(data ?? []);
             setIsDialogOpen(false);
         } catch (e) {
-            setErrorMessage(e instanceof Error ? e.message : "Błąd generowania raportu");
+            setErrorMessage(e instanceof Error ? e.message : t("app.secretary.reports.generateError"));
         } finally {
             setIsLoading(false);
         }
@@ -101,20 +104,20 @@ const CourseReportsBlock = () => {
 
             if (!res.ok) {
                 const msg = await res.text();
-                throw new Error(msg || "Błąd eksportu CSV");
+                throw new Error(msg || t("app.secretary.reports.exportError"));
             }
 
             const blob = await res.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `raport_kursy_${aggregation}.csv`;
+            a.download = `report_courses_${aggregation}.csv`;
             document.body.appendChild(a);
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
         } catch (e) {
-            setErrorMessage(e instanceof Error ? e.message : "Błąd eksportu CSV");
+            setErrorMessage(e instanceof Error ? e.message : t("app.secretary.reports.exportError"));
         } finally {
             setIsLoading(false);
         }
@@ -124,7 +127,7 @@ const CourseReportsBlock = () => {
         <Card className="bg-white dark:bg-slate-800 shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
             <CardHeader className="border-b dark:border-slate-700 pb-6 flex flex-row items-center justify-between">
                 <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
-                    Raporty z kursów
+                    {t("app.secretary.reports.coursesTitle")}
                 </CardTitle>
                 <div className="flex gap-2">
                     <Button
@@ -132,7 +135,7 @@ const CourseReportsBlock = () => {
                         onClick={() => setIsDialogOpen(true)}
                         disabled={isLoading}
                     >
-                        Generuj
+                        {t("common.generate")}
                     </Button>
                     <Button
                         variant="outline"
@@ -140,7 +143,7 @@ const CourseReportsBlock = () => {
                         disabled={isLoading || rows.length === 0}
                         className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
                     >
-                        Eksport CSV
+                        {t("common.exportCsv")}
                     </Button>
                 </div>
             </CardHeader>
@@ -157,16 +160,16 @@ const CourseReportsBlock = () => {
                         <TableHeader>
                             <TableRow className="border-b dark:border-slate-700">
                                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                                    Okres
+                                    {t("app.secretary.reports.period")}
                                 </TableHead>
                                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                                    Przychód
+                                    {t("app.secretary.reports.revenue")}
                                 </TableHead>
                                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                                    Koszt paliwa
+                                    {t("app.secretary.reports.fuelCost")}
                                 </TableHead>
                                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                                    Zysk
+                                    {t("app.secretary.reports.profit")}
                                 </TableHead>
                             </TableRow>
                         </TableHeader>
@@ -194,7 +197,7 @@ const CourseReportsBlock = () => {
                             {!isLoading && rows.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={4} className="py-6 text-center text-gray-500 dark:text-gray-400">
-                                        Brak wyników. Wygeneruj raport.
+                                        {t("app.secretary.reports.noResults")}
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -207,54 +210,54 @@ const CourseReportsBlock = () => {
                 <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700 max-w-lg">
                     <DialogHeader>
                         <DialogTitle className="text-gray-900 dark:text-white">
-                            Wygeneruj raport
+                            {t("app.secretary.reports.generateReportTitle")}
                         </DialogTitle>
                     </DialogHeader>
 
                     <div className="space-y-4 py-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Od (data)
+                                {t("app.secretary.reports.dateFrom")}
                             </label>
                             <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Do (data)
+                                {t("app.secretary.reports.dateTo")}
                             </label>
                             <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Agregacja
+                                {t("app.secretary.reports.aggregation")}
                             </label>
                             <Select value={aggregation} onValueChange={(v) => setAggregation(v as Aggregation)}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Wybierz" />
+                                    <SelectValue placeholder={t("app.common.select")} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="DAY">Dzienny</SelectItem>
-                                    <SelectItem value="WEEK">Tygodniowy</SelectItem>
-                                    <SelectItem value="MONTH">Miesięczny</SelectItem>
-                                    <SelectItem value="YEAR">Roczny</SelectItem>
+                                    <SelectItem value="DAY">{t("app.secretary.reports.daily")}</SelectItem>
+                                    <SelectItem value="WEEK">{t("app.secretary.reports.weekly")}</SelectItem>
+                                    <SelectItem value="MONTH">{t("app.secretary.reports.monthly")}</SelectItem>
+                                    <SelectItem value="YEAR">{t("app.secretary.reports.yearly")}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Pojazd (opcjonalnie - ID)
+                                {t("app.secretary.reports.vehicleOptional")}
                             </label>
-                            <Input value={vehicleId} onChange={(e) => setVehicleId(e.target.value)} placeholder="np. 1" />
+                            <Input value={vehicleId} onChange={(e) => setVehicleId(e.target.value)} placeholder={t("common.eg1")} />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Kierowca (opcjonalnie - ID)
+                                {t("app.secretary.reports.driverOptional")}
                             </label>
-                            <Input value={driverId} onChange={(e) => setDriverId(e.target.value)} placeholder="np. 5" />
+                            <Input value={driverId} onChange={(e) => setDriverId(e.target.value)} placeholder={t("common.eg5")} />
                         </div>
                     </div>
 
@@ -265,14 +268,14 @@ const CourseReportsBlock = () => {
                             disabled={isLoading}
                             className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
                         >
-                            Anuluj
+                            {t("common.cancel")}
                         </Button>
                         <Button
                             onClick={handleGenerate}
                             disabled={isLoading || !startDate || !endDate}
                             className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isLoading ? "Generowanie..." : "Generuj"}
+                            {isLoading ? t("app.common.generating") : t("common.generate")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -283,4 +286,3 @@ const CourseReportsBlock = () => {
 
 export { CourseReportsBlock };
 export default CourseReportsBlock;
-

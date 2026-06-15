@@ -1,5 +1,6 @@
 import React from "react";
 import { MapContainer, TileLayer, Polyline } from "react-leaflet";
+import { useT } from "@/i18n";
 
 interface MapVisualizationProps {
   selectedRoute: string | null;
@@ -8,6 +9,8 @@ interface MapVisualizationProps {
 const MapVisualization: React.FC<MapVisualizationProps> = ({
   selectedRoute,
 }) => {
+  const t = useT();
+
   const route = selectedRoute ? JSON.parse(selectedRoute) : null;
 
   return (
@@ -32,8 +35,8 @@ const MapVisualization: React.FC<MapVisualizationProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 003 16.382V5.618a1 1 0 011.553-.894L9 7m0 13l6.447 3.268A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
               </svg>
             </div>
-            <p className="text-slate-300 text-lg font-semibold">Wybierz trasę</p>
-            <p className="text-slate-500 text-sm mt-2">aby zobaczyć mapę trasy</p>
+            <p className="text-slate-300 text-lg font-semibold">{t("app.map.selectRoute")}</p>
+            <p className="text-slate-500 text-sm mt-2">{t("app.map.seeRouteMap")}</p>
           </div>
         </div>
       )}

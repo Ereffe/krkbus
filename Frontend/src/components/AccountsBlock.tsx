@@ -18,6 +18,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { fetchJson } from "@/lib/api";
+import { useT } from "@/i18n";
 
 type EmployeeRole = "ADMIN" | "SECRETARY" | "DRIVER";
 type EmployeeStatus = "ACTIVE" | "INACTIVE";
@@ -36,18 +37,24 @@ interface EmployeeAccount {
   position: string;
 }
 
-const statusToPl = (status: EmployeeStatus) => {
-  switch (status) {
-    case "ACTIVE":
-      return "Aktywny";
-    case "INACTIVE":
-      return "Nieaktywny";
-    default:
-      return status;
-  }
+const useStatusToPl = () => {
+  const t = useT();
+  return (status: EmployeeStatus) => {
+    switch (status) {
+      case "ACTIVE":
+        return t("app.owner.accounts.statuses.active");
+      case "INACTIVE":
+        return t("app.owner.accounts.statuses.inactive");
+      default:
+        return status;
+    }
+  };
 };
 
 export function AccountsBlock() {
+  const t = useT();
+  const statusToPl = useStatusToPl();
+
   const [accounts, setAccounts] = useState<EmployeeAccount[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +94,7 @@ export function AccountsBlock() {
       const data = await fetchJson<EmployeeAccount[]>("/api/admin/users/employees");
       setAccounts(data);
     } catch (e: any) {
-      setError(e?.message ?? "Nie udało się pobrać kont");
+      setError(e?.message ?? t("app.owner.accounts.fetchError"));
     } finally {
       setIsLoading(false);
     }
@@ -113,15 +120,15 @@ export function AccountsBlock() {
 
     const getRoleLabel = (role: EmployeeRole) => {
       const labels: Record<EmployeeRole, string> = {
-        ADMIN: "Właściciel",
-        SECRETARY: "Sekretarka",
-        DRIVER: "Kierowca",
+        ADMIN: t("app.owner.accounts.roles.owner"),
+        SECRETARY: t("app.owner.accounts.roles.secretary"),
+        DRIVER: t("app.owner.accounts.roles.driver"),
       };
       return labels[role] ?? role;
     };
 
     return { getRoleBadgeColor, getRoleLabel };
-  }, []);
+  }, [t]);
 
   const openManageDialog = (acc: EmployeeAccount) => {
     setSelectedAccount(acc);
@@ -172,7 +179,7 @@ export function AccountsBlock() {
 
       await loadAccounts();
     } catch (e: any) {
-      setError(e?.message ?? "Nie udało się utworzyć konta");
+      setError(e?.message ?? t("app.owner.accounts.createError"));
     }
   };
 
@@ -196,7 +203,7 @@ export function AccountsBlock() {
       setSelectedAccount(null);
       await loadAccounts();
     } catch (e: any) {
-      setError(e?.message ?? "Nie udało się zapisać zmian");
+      setError(e?.message ?? t("app.owner.accounts.saveError"));
     }
   };
 
@@ -211,7 +218,7 @@ export function AccountsBlock() {
       setSelectedAccount(null);
       await loadAccounts();
     } catch (e: any) {
-      setError(e?.message ?? "Nie udało się usunąć konta");
+      setError(e?.message ?? t("app.owner.accounts.deleteError"));
     }
   };
 
@@ -220,14 +227,14 @@ export function AccountsBlock() {
       <CardHeader className="border-b dark:border-slate-700 pb-6">
         <div className="flex items-center justify-between">
           <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
-            Zarządzaj Kontami (pracownicy)
+            {t("app.owner.accounts.title")}
           </CardTitle>
           <Button
             onClick={() => setIsCreateDialogOpen(true)}
             className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Dodaj Konto
+            {t("app.owner.accounts.addAccount")}
           </Button>
         </div>
       </CardHeader>
@@ -244,19 +251,19 @@ export function AccountsBlock() {
             <TableHeader>
               <TableRow className="border-b dark:border-slate-700">
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Imię i Nazwisko
+                  {t("app.owner.accounts.fullName")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Email
+                  {t("app.owner.accounts.email")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Rola
+                  {t("app.owner.accounts.role")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Status
+                  {t("app.owner.accounts.status")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Akcje
+                  {t("app.owner.accounts.actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -264,7 +271,7 @@ export function AccountsBlock() {
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={5} className="py-6 text-center text-gray-500">
-                    Ładowanie...
+                    {t("app.owner.accounts.loading")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -289,8 +296,8 @@ export function AccountsBlock() {
                     <TableCell className="py-4">
                       <span
                         className={`px-2 py-1 rounded text-sm font-medium ${account.status === "ACTIVE"
-                            ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
-                            : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300"
+                          ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300"
                           }`}
                       >
                         {statusToPl(account.status)}
@@ -303,7 +310,7 @@ export function AccountsBlock() {
                         className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
                         onClick={() => openManageDialog(account)}
                       >
-                        Zarządzaj
+                        {t("app.owner.accounts.manage")}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -319,7 +326,7 @@ export function AccountsBlock() {
         <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700">
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">
-              Dodaj Nowe Konto (pracownik)
+              {t("app.owner.accounts.createTitle")}
             </DialogTitle>
           </DialogHeader>
 
@@ -327,7 +334,7 @@ export function AccountsBlock() {
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Login
+                  {t("app.owner.accounts.loginLabel")}
                 </label>
                 <input
                   type="text"
@@ -340,7 +347,7 @@ export function AccountsBlock() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Hasło
+                  {t("app.owner.accounts.passwordLabel")}
                 </label>
                 <input
                   type="password"
@@ -359,7 +366,7 @@ export function AccountsBlock() {
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Imię
+                  {t("app.owner.accounts.firstNameLabel")}
                 </label>
                 <input
                   type="text"
@@ -375,7 +382,7 @@ export function AccountsBlock() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Nazwisko
+                  {t("app.owner.accounts.lastNameLabel")}
                 </label>
                 <input
                   type="text"
@@ -394,7 +401,7 @@ export function AccountsBlock() {
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Email
+                  {t("app.owner.accounts.email")}
                 </label>
                 <input
                   type="email"
@@ -407,7 +414,7 @@ export function AccountsBlock() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Telefon
+                  {t("app.owner.accounts.phoneLabel")}
                 </label>
                 <input
                   type="text"
@@ -423,7 +430,7 @@ export function AccountsBlock() {
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Rola
+                  {t("app.owner.accounts.role")}
                 </label>
                 <select
                   value={createFormData.role}
@@ -435,14 +442,14 @@ export function AccountsBlock() {
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
                 >
-                  <option value="ADMIN">Właściciel</option>
-                  <option value="SECRETARY">Sekretarka</option>
-                  <option value="DRIVER">Kierowca</option>
+                  <option value="ADMIN">{t("app.owner.accounts.roles.owner")}</option>
+                  <option value="SECRETARY">{t("app.owner.accounts.roles.secretary")}</option>
+                  <option value="DRIVER">{t("app.owner.accounts.roles.driver")}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Status
+                  {t("app.owner.accounts.status")}
                 </label>
                 <select
                   value={createFormData.status}
@@ -454,15 +461,15 @@ export function AccountsBlock() {
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
                 >
-                  <option value="Aktywny">Aktywny</option>
-                  <option value="Nieaktywny">Nieaktywny</option>
+                  <option value="Aktywny">{t("app.owner.accounts.statuses.active")}</option>
+                  <option value="Nieaktywny">{t("app.owner.accounts.statuses.inactive")}</option>
                 </select>
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Pozycja (np. Kierowca/Sekretarka/Właściciel)
+                {t("app.owner.accounts.positionLabel")}
               </label>
               <input
                 type="text"
@@ -481,13 +488,13 @@ export function AccountsBlock() {
               onClick={() => setIsCreateDialogOpen(false)}
               className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
             >
-              Anuluj
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={handleCreate}
               className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white"
             >
-              Dodaj
+              {t("app.owner.accounts.add")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -504,7 +511,7 @@ export function AccountsBlock() {
         <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700">
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">
-              Zarządzaj kontem
+              {t("app.owner.accounts.manageTitle")}
             </DialogTitle>
           </DialogHeader>
 
@@ -512,7 +519,7 @@ export function AccountsBlock() {
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Imię
+                  {t("app.owner.accounts.firstNameLabel")}
                 </label>
                 <input
                   type="text"
@@ -528,7 +535,7 @@ export function AccountsBlock() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Nazwisko
+                  {t("app.owner.accounts.lastNameLabel")}
                 </label>
                 <input
                   type="text"
@@ -547,7 +554,7 @@ export function AccountsBlock() {
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Email
+                  {t("app.owner.accounts.email")}
                 </label>
                 <input
                   type="email"
@@ -560,7 +567,7 @@ export function AccountsBlock() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Telefon
+                  {t("app.owner.accounts.phoneLabel")}
                 </label>
                 <input
                   type="text"
@@ -576,7 +583,7 @@ export function AccountsBlock() {
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Rola
+                  {t("app.owner.accounts.role")}
                 </label>
                 <select
                   value={manageFormData.role}
@@ -588,14 +595,14 @@ export function AccountsBlock() {
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
                 >
-                  <option value="ADMIN">Właściciel</option>
-                  <option value="SECRETARY">Sekretarka</option>
-                  <option value="DRIVER">Kierowca</option>
+                  <option value="ADMIN">{t("app.owner.accounts.roles.owner")}</option>
+                  <option value="SECRETARY">{t("app.owner.accounts.roles.secretary")}</option>
+                  <option value="DRIVER">{t("app.owner.accounts.roles.driver")}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Status
+                  {t("app.owner.accounts.status")}
                 </label>
                 <select
                   value={manageFormData.status}
@@ -607,15 +614,15 @@ export function AccountsBlock() {
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
                 >
-                  <option value="ACTIVE">Aktywny</option>
-                  <option value="INACTIVE">Nieaktywny</option>
+                  <option value="ACTIVE">{t("app.owner.accounts.statuses.active")}</option>
+                  <option value="INACTIVE">{t("app.owner.accounts.statuses.inactive")}</option>
                 </select>
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Pozycja
+                {t("app.owner.accounts.positionShortLabel")}
               </label>
               <input
                 type="text"
@@ -637,7 +644,7 @@ export function AccountsBlock() {
               onClick={() => setIsManageDialogOpen(false)}
               className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
             >
-              Zamknij
+              {t("app.common.close")}
             </Button>
 
             <Button
@@ -645,14 +652,14 @@ export function AccountsBlock() {
               onClick={handleDelete}
               className="border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-700"
             >
-              Usuń
+              {t("app.common.delete")}
             </Button>
 
             <Button
               onClick={handleManageSave}
               className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white"
             >
-              Zapisz
+              {t("common.save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -660,4 +667,3 @@ export function AccountsBlock() {
     </Card>
   );
 }
-

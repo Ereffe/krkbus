@@ -1,8 +1,9 @@
- import { Layout } from "@/components/Layout";
+import { Layout } from "@/components/Layout";
 import { BusRouteCard } from "@/components/BusRouteCard";
 import type { BusRoute, BusStop } from "@/types/bus";
 import { Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useT } from "@/i18n";
 
 interface ApiStop {
   stopID: number;
@@ -71,9 +72,9 @@ const calculateDistanceKm = (stops: BusStop[]) => {
     const a =
       Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
       Math.cos(lat1) *
-        Math.cos(lat2) *
-        Math.sin(deltaLng / 2) *
-        Math.sin(deltaLng / 2);
+      Math.cos(lat2) *
+      Math.sin(deltaLng / 2) *
+      Math.sin(deltaLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     total += radiusKm * c;
   }
@@ -84,6 +85,7 @@ const calculateDistanceKm = (stops: BusStop[]) => {
 const mapApiRoute = (
   route: ApiRoute,
   priceByRouteId: Map<number, ApiPrice>,
+  noDataText: string
 ): BusRoute => {
   const stops: BusStop[] = (route.stops ?? []).map((stop) => ({
     id: stop.stopID.toString(),
@@ -95,7 +97,7 @@ const mapApiRoute = (
   }));
   const startStop = stops[0] ?? {
     id: "start",
-    name: "Brak danych",
+    name: noDataText,
     coordinate: { latitude: 0, longitude: 0 },
   };
   const endStop = stops[stops.length - 1] ?? startStop;
@@ -117,12 +119,14 @@ const mapApiRoute = (
       seniorTicket: price?.seniorTicket ?? 0,
       dayPass: price?.dayPass ?? 0,
     },
-    frequency: "Brak danych",
+    frequency: noDataText,
     distance: calculateDistanceKm(stops),
   };
 };
 
 export function Dashboard() {
+  const t = useT();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [routes, setRoutes] = useState<BusRoute[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -143,13 +147,13 @@ export function Dashboard() {
         }
       });
       setRoutes(
-        (routesData ?? []).map((route) => mapApiRoute(route, priceByRouteId)),
+        (routesData ?? []).map((route) => mapApiRoute(route, priceByRouteId, t("app.dashboard.noData"))),
       );
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
-          : "Nie udało się pobrać listy tras.";
+          : t("app.dashboard.error.fetchRoutes");
       setErrorMessage(message);
     } finally {
       setIsLoading(false);
@@ -177,10 +181,10 @@ export function Dashboard() {
         {/* Header Section */}
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Trasy autobusowe Krakowa
+            {t("app.dashboard.title")}
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400">
-            Znajdź i sprawdź harmonogram i ceny Twojej trasę
+            {t("app.dashboard.subtitle")}
           </p>
         </div>
 
@@ -190,7 +194,7 @@ export function Dashboard() {
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Szukaj trasy po nazwie, numerze lub opisie..."
+              placeholder={t("app.dashboard.searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3 rounded-lg border-2 border-gray-200 dark:border-slate-600 focus:border-blue-600 dark:focus:border-blue-400 focus:outline-none transition bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
@@ -215,7 +219,7 @@ export function Dashboard() {
         {!isLoading && filteredRoutes.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-600 text-lg">
-              Nie znaleziono tras pasujących do wyszukiwania
+              {t("app.dashboard.noResults")}
             </p>
           </div>
         )}

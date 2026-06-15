@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
+import { useT } from "@/i18n";
 
 interface ApiReport {
   reportID: number;
@@ -51,6 +52,8 @@ const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
 };
 
 export function ReportsBlock() {
+  const t = useT();
+
   const [reports, setReports] = useState<ApiReport[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -71,7 +74,7 @@ export function ReportsBlock() {
       const message =
         error instanceof Error
           ? error.message
-          : "Nie udało się pobrać raportów.";
+          : t("app.secretary.reportsBlock.fetchError");
       setErrorMessage(message);
     } finally {
       setIsLoading(false);
@@ -107,7 +110,7 @@ export function ReportsBlock() {
       const message =
         error instanceof Error
           ? error.message
-          : "Nie udało się wygenerować raportu.";
+          : t("app.secretary.reportsBlock.generateError");
       setErrorMessage(message);
     } finally {
       setIsLoading(false);
@@ -115,7 +118,7 @@ export function ReportsBlock() {
   };
 
   const handleDownloadReport = (report: ApiReport) => {
-    const fileContent = `Tytuł: ${report.title}\nWygenerowano: ${new Date(report.generatedAt).toLocaleString("pl-PL")}\n\nTreść:\n${report.content}`;
+    const fileContent = `${t("app.secretary.reportsBlock.txtTitle")} ${report.title}\n${t("app.secretary.reportsBlock.txtGenerated")} ${new Date(report.generatedAt).toLocaleString("pl-PL")}\n\n${t("app.secretary.reportsBlock.txtContent")}\n${report.content}`;
     const blob = new Blob([fileContent], { type: "text/plain;charset=utf-8" });
     const element = document.createElement("a");
     element.href = URL.createObjectURL(blob);
@@ -129,14 +132,14 @@ export function ReportsBlock() {
     <Card className="bg-white dark:bg-slate-800 shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
       <CardHeader className="border-b dark:border-slate-700 pb-6 flex flex-row items-center justify-between">
         <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
-          Przeglądaj Raporty
+          {t("app.secretary.reportsBlock.title")}
         </CardTitle>
         <Button
           onClick={() => setIsDialogOpen(true)}
           className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
-          Generuj raport
+          {t("app.secretary.reportsBlock.generateReportBtn")}
         </Button>
       </CardHeader>
       <CardContent className="pt-6">
@@ -150,16 +153,16 @@ export function ReportsBlock() {
             <TableHeader>
               <TableRow className="border-b dark:border-slate-700">
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Tytuł
+                  {t("app.secretary.reportsBlock.tableTitle")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Wygenerowano
+                  {t("app.secretary.reportsBlock.tableGenerated")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Podgląd
+                  {t("app.secretary.reportsBlock.tablePreview")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Akcje
+                  {t("app.secretary.reportsBlock.tableActions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -187,7 +190,7 @@ export function ReportsBlock() {
                       onClick={() => handleDownloadReport(report)}
                       className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
                     >
-                      Pobierz
+                      {t("app.secretary.reportsBlock.downloadBtn")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -198,7 +201,7 @@ export function ReportsBlock() {
                     colSpan={4}
                     className="py-6 text-center text-gray-500 dark:text-gray-400"
                   >
-                    Brak raportów do wyświetlenia
+                    {t("app.secretary.reportsBlock.noReports")}
                   </TableCell>
                 </TableRow>
               )}
@@ -211,31 +214,31 @@ export function ReportsBlock() {
         <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700 max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">
-              Wygeneruj Nowy Raport
+              {t("app.secretary.reportsBlock.modalTitle")}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Tytuł
+                {t("app.secretary.reportsBlock.labelTitle")}
               </label>
               <Input
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="np. Raport miesięczny"
+                placeholder={t("app.secretary.reportsBlock.placeholderTitle")}
                 className="w-full bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Treść
+                {t("app.secretary.reportsBlock.labelContent")}
               </label>
               <Textarea
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
                 rows={5}
-                placeholder="Treść raportu..."
+                placeholder={t("app.secretary.reportsBlock.placeholderContent")}
                 className="w-full bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600"
               />
             </div>
@@ -252,14 +255,14 @@ export function ReportsBlock() {
               className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
               disabled={isLoading}
             >
-              Anuluj
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={handleGenerateReport}
               disabled={isLoading || !newTitle.trim() || !newContent.trim()}
               className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Generowanie..." : "Generuj"}
+              {isLoading ? t("app.common.generating") : t("common.generate")}
             </Button>
           </DialogFooter>
         </DialogContent>

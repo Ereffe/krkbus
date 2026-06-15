@@ -1,31 +1,34 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Server, Database, Shield, RotateCw } from "lucide-react";
+import { useT } from "@/i18n";
 
 export function SystemBlock() {
+  const t = useT();
+
   const systemSettings = [
     {
       id: 1,
-      name: "Status Serwera",
-      description: "Sprawdź stan i wydajność serwera",
+      name: t("app.owner.system.serverStatus"),
+      description: t("app.owner.system.serverStatusDesc"),
       icon: Server,
-      status: "Online",
+      status: t("app.owner.system.online"),
       statusColor: "text-green-600 dark:text-green-400",
     },
     {
       id: 2,
-      name: "Baza Danych",
-      description: "Zarządzaj bazą danych i kopiami zapasowymi",
+      name: t("app.owner.system.database"),
+      description: t("app.owner.system.databaseDesc"),
       icon: Database,
-      status: "Zsynchronizowana",
+      status: t("app.owner.system.synchronized"),
       statusColor: "text-green-600 dark:text-green-400",
     },
     {
       id: 3,
-      name: "Bezpieczeństwo",
-      description: "Ustawienia i audyt bezpieczeństwa",
+      name: t("app.owner.system.security"),
+      description: t("app.owner.system.securityDesc"),
       icon: Shield,
-      status: "Zabezpieczony",
+      status: t("app.owner.system.secured"),
       statusColor: "text-green-600 dark:text-green-400",
     },
   ];
@@ -34,7 +37,7 @@ export function SystemBlock() {
     <Card className="bg-white dark:bg-slate-800 shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
       <CardHeader className="border-b dark:border-slate-700 pb-6">
         <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
-          Zarządzaj Systemem
+          {t("app.owner.system.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-6">
@@ -70,7 +73,7 @@ export function SystemBlock() {
                     size="sm"
                     className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
                   >
-                    Konfiguruj
+                    {t("app.owner.system.configure")}
                   </Button>
                 </div>
               </div>
@@ -86,21 +89,21 @@ export function SystemBlock() {
               className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
             >
               <RotateCw className="w-4 h-4 mr-2" />
-              Synchronizuj
+              {t("app.owner.system.sync")}
             </Button>
             <Button
               variant="outline"
               size="sm"
               className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
             >
-              Utwórz Kopię
+              {t("app.owner.system.createBackup")}
             </Button>
             <Button
               variant="outline"
               size="sm"
               className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
             >
-              Logi Systemu
+              {t("app.owner.system.systemLogs")}
             </Button>
           </div>
         </div>

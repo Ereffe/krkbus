@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useCallback, useEffect, useState } from "react";
+import { useT } from "@/i18n";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -75,6 +76,8 @@ type DraftPrice = {
 };
 
 export function PricingBlock() {
+  const t = useT();
+
   const [routes, setRoutes] = useState<ApiRoute[]>([]);
   const [pricesByRouteId, setPricesByRouteId] = useState<Map<number, ApiPrice>>(
     new Map(),
@@ -110,7 +113,7 @@ export function PricingBlock() {
       setPricesByRouteId(map);
     } catch (e) {
       setErrorMessage(
-        e instanceof Error ? e.message : "Nie udało się pobrać cen.",
+        e instanceof Error ? e.message : t("app.owner.pricing.fetchError"),
       );
     } finally {
       setIsLoading(false);
@@ -173,7 +176,7 @@ export function PricingBlock() {
       setIsDialogOpen(false);
     } catch (e) {
       setErrorMessage(
-        e instanceof Error ? e.message : "Nie udało się zapisać ceny.",
+        e instanceof Error ? e.message : t("app.owner.pricing.saveError"),
       );
     } finally {
       setIsLoading(false);
@@ -184,7 +187,7 @@ export function PricingBlock() {
     <Card className="bg-white dark:bg-slate-800 shadow-md dark:shadow-slate-900/50 border dark:border-slate-700">
       <CardHeader className="border-b dark:border-slate-700 pb-6">
         <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
-          Ustaw Ceny
+          {t("app.owner.pricing.title")}
         </CardTitle>
       </CardHeader>
 
@@ -200,22 +203,22 @@ export function PricingBlock() {
             <TableHeader>
               <TableRow className="border-b dark:border-slate-700">
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Trasa
+                  {t("app.owner.pricing.route")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Akcje
+                  {t("app.owner.pricing.actions")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-center">
-                  Normalny
+                  {t("app.owner.pricing.normal")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-center">
-                  Student
+                  {t("app.owner.pricing.student")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-center">
-                  Senior
+                  {t("app.owner.pricing.senior")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-center">
-                  Dzienny
+                  {t("app.owner.pricing.dayPass")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -239,7 +242,7 @@ export function PricingBlock() {
                         disabled={isLoading}
                         className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
                       >
-                        Edytuj
+                        {t("common.edit")}
                       </Button>
                     </TableCell>
                     <TableCell className="text-gray-900 dark:text-white font-medium text-center py-4">
@@ -264,7 +267,7 @@ export function PricingBlock() {
                     colSpan={6}
                     className="py-8 text-center text-gray-500 dark:text-gray-400"
                   >
-                    Brak tras do wyświetlenia
+                    {t("app.owner.pricing.noRoutes")}
                   </TableCell>
                 </TableRow>
               )}
@@ -277,60 +280,60 @@ export function PricingBlock() {
         <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700 max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">
-              Edytuj ceny
+              {t("app.owner.pricing.editTitle")}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Normalny
+                {t("app.owner.pricing.normal")}
               </label>
               <Input
                 value={draft.normalTicket}
                 onChange={(e) =>
                   setDraft({ ...draft, normalTicket: e.target.value })
                 }
-                placeholder="np. 45"
+                placeholder={`${t("app.owner.pricing.eg")} 45`}
               />
             </div>
 
             <div className="grid grid-cols-1 gap-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Student
+                {t("app.owner.pricing.student")}
               </label>
               <Input
                 value={draft.studentTicket}
                 onChange={(e) =>
                   setDraft({ ...draft, studentTicket: e.target.value })
                 }
-                placeholder="np. 22.5"
+                placeholder={`${t("app.owner.pricing.eg")} 22.5`}
               />
             </div>
 
             <div className="grid grid-cols-1 gap-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Senior
+                {t("app.owner.pricing.senior")}
               </label>
               <Input
                 value={draft.seniorTicket}
                 onChange={(e) =>
                   setDraft({ ...draft, seniorTicket: e.target.value })
                 }
-                placeholder="np. 22.5"
+                placeholder={`${t("app.owner.pricing.eg")} 22.5`}
               />
             </div>
 
             <div className="grid grid-cols-1 gap-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Bilet dzienny
+                {t("app.owner.pricing.dayPassLabel")}
               </label>
               <Input
                 value={draft.dayPass}
                 onChange={(e) =>
                   setDraft({ ...draft, dayPass: e.target.value })
                 }
-                placeholder="np. 100"
+                placeholder={`${t("app.owner.pricing.eg")} 100`}
               />
             </div>
           </div>
@@ -344,14 +347,14 @@ export function PricingBlock() {
               className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
               disabled={isLoading}
             >
-              Anuluj
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={savePrice}
               disabled={isLoading || !editingRouteId}
               className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Zapisywanie..." : "Zapisz"}
+              {isLoading ? t("app.common.saving") : t("common.save")}
             </Button>
           </DialogFooter>
         </DialogContent>

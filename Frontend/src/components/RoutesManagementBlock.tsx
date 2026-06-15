@@ -20,6 +20,7 @@ import { Plus, Trash2, MapPin } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Coordinate } from "@/types/bus";
 import { StopMapPicker } from "@/components/StopMapPicker";
+import { useT } from "@/i18n";
 
 interface ApiStop {
   stopID: number;
@@ -65,6 +66,8 @@ const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
 };
 
 export function RoutesManagementBlock() {
+  const t = useT();
+
   const [routes, setRoutes] = useState<ApiRoute[]>([]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -114,7 +117,7 @@ export function RoutesManagementBlock() {
       setRoutes(data ?? []);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Nie udało się pobrać tras.";
+        error instanceof Error ? error.message : t("app.owner.routes.fetchError");
       setErrorMessage(message);
     } finally {
       setIsLoading(false);
@@ -168,7 +171,7 @@ export function RoutesManagementBlock() {
       setIsDialogOpen(false);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Nie udało się dodać trasy.";
+        error instanceof Error ? error.message : t("app.owner.routes.saveError");
       setErrorMessage(message);
     } finally {
       setIsLoading(false);
@@ -191,14 +194,14 @@ export function RoutesManagementBlock() {
       <CardHeader className="border-b dark:border-slate-700 pb-6">
         <div className="flex items-center justify-between">
           <CardTitle className="text-gray-900 dark:text-white text-2xl font-bold">
-            Ustaw Trasy
+            {t("app.owner.routes.title")}
           </CardTitle>
           <Button
             onClick={() => setIsDialogOpen(true)}
             className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Dodaj Trasę
+            {t("app.owner.routes.addRoute")}
           </Button>
         </div>
       </CardHeader>
@@ -213,16 +216,16 @@ export function RoutesManagementBlock() {
             <TableHeader>
               <TableRow className="border-b dark:border-slate-700">
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Nazwa trasy
+                  {t("app.owner.routes.routeName")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Opis
+                  {t("app.owner.routes.description")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Przystanków
+                  {t("app.owner.routes.stopsCount")}
                 </TableHead>
                 <TableHead className="text-gray-900 dark:text-white font-semibold text-left">
-                  Akcje
+                  {t("app.owner.routes.actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -248,7 +251,7 @@ export function RoutesManagementBlock() {
                       className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
                       disabled={isLoading}
                     >
-                      Edytuj
+                      {t("common.edit")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -259,7 +262,7 @@ export function RoutesManagementBlock() {
                     colSpan={4}
                     className="py-8 text-center text-gray-500 dark:text-gray-400"
                   >
-                    Brak tras do wyświetlenia
+                    {t("app.owner.routes.noRoutes")}
                   </TableCell>
                 </TableRow>
               )}
@@ -272,7 +275,7 @@ export function RoutesManagementBlock() {
         <DialogContent className="bg-white dark:bg-slate-800 border dark:border-slate-700 max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">
-              Dodaj Nową Trasę
+              {t("app.owner.routes.addTitle")}
             </DialogTitle>
           </DialogHeader>
 
@@ -285,20 +288,20 @@ export function RoutesManagementBlock() {
                 value="info"
                 className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
               >
-                Informacje o trasie
+                {t("app.owner.routes.tabInfo")}
               </TabsTrigger>
               <TabsTrigger
                 value="stops"
                 className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
               >
-                Przystanki ({formData.stops.length})
+                {t("app.owner.routes.tabStops")} ({formData.stops.length})
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="info" className="space-y-4 py-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Nazwa Trasy
+                  {t("app.owner.routes.routeName")}
                 </label>
                 <input
                   type="text"
@@ -307,12 +310,12 @@ export function RoutesManagementBlock() {
                     setFormData({ ...formData, name: e.target.value })
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                  placeholder="np. Kraków - Warszawa"
+                  placeholder={t("app.owner.routes.routeNamePlaceholder")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Opis
+                  {t("app.owner.routes.description")}
                 </label>
                 <textarea
                   value={formData.description}
@@ -321,7 +324,7 @@ export function RoutesManagementBlock() {
                   }
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                  placeholder="np. Trasa dalekobieżna przez główne miasta"
+                  placeholder={t("app.owner.routes.descriptionPlaceholder")}
                 />
               </div>
             </TabsContent>
@@ -331,7 +334,7 @@ export function RoutesManagementBlock() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <MapPin className="w-4 h-4 inline mr-1" />
-                  Kliknij na mapę, aby dodać przystanekk
+                  {t("app.owner.routes.clickMapToAdd")}
                 </label>
                 <StopMapPicker
                   onCoordinateSelect={setMapCoordinate}
@@ -344,25 +347,25 @@ export function RoutesManagementBlock() {
                 <div className="grid grid-cols-1 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Nazwa przystanku
+                      {t("app.owner.routes.stopNameLabel")}
                     </label>
                     <input
                       type="text"
                       value={newStopName}
                       onChange={(e) => setNewStopName(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-                      placeholder="np. Kraków - Centrum"
+                      placeholder={t("app.owner.routes.stopNamePlaceholder")}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Współrzędne
+                        {t("app.owner.routes.coordinates")}
                       </label>
                       <div className="px-3 py-2 bg-gray-100 dark:bg-slate-600 rounded-lg text-sm text-gray-600 dark:text-gray-300">
                         {mapCoordinate
                           ? `${mapCoordinate.latitude.toFixed(4)}, ${mapCoordinate.longitude.toFixed(4)}`
-                          : "Kliknij na mapę"}
+                          : t("app.owner.routes.clickMap")}
                       </div>
                     </div>
                   </div>
@@ -373,18 +376,18 @@ export function RoutesManagementBlock() {
                   className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Dodaj przystanekk
+                  {t("app.owner.routes.addStop")}
                 </Button>
               </div>
 
               {/* Lista przystanków */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Dodane przystanki ({formData.stops.length})
+                  {t("app.owner.routes.addedStops")} ({formData.stops.length})
                 </label>
                 {formData.stops.length === 0 ? (
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-slate-700 rounded-lg border border-dashed border-gray-300 dark:border-slate-600">
-                    Brak dodanych przystanków
+                    {t("app.owner.routes.noAddedStops")}
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -434,7 +437,7 @@ export function RoutesManagementBlock() {
               }}
               className="border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
             >
-              Anuluj
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={handleAddRoute}
@@ -445,7 +448,7 @@ export function RoutesManagementBlock() {
               }
               className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Zapisywanie..." : "Dodaj trasę"}
+              {isLoading ? t("app.common.saving") : t("app.owner.routes.addRouteSubmit")}
             </Button>
           </DialogFooter>
         </DialogContent>

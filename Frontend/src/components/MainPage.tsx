@@ -4,19 +4,22 @@ import { ReservationReportsBlock } from "./ReservationReportsBlock";
 import { CourseReportsBlock } from "./CoursesReportsBlock";
 import { ReservationsBlock } from "./ReservationsBlock";
 import { Layout } from "./Layout";
+import { useT } from "@/i18n";
 
 
 export function MainPage() {
+  const t = useT();
+
   return (
     <Layout>
       <div className="space-y-8">
         {/* Header */}
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Panel Zarządzania Sekretariatu
+            {t("app.secretary.title")}
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400">
-            Zarządzaj grafikami kierowców, raportami i rezerwacjami
+            {t("app.secretary.subtitle")}
           </p>
         </div>
 

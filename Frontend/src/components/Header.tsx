@@ -3,14 +3,30 @@ import { Bus, Zap, Moon, Sun, LogOut, User as UserIcon } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
 
 export function Header() {
+
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const [lang, setLang] = useState("EN");
   const { user, isAuthenticated, logout } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
+
+  const { i18n, t } = useTranslation();
+
+  useEffect(() => {
+    const lang = i18n.language === "en" ? "EN" : "PL";
+    setLang(lang);
+  }, [i18n.language]);
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "en" ? "pl" : "en";
+    i18n.changeLanguage(newLang);
+  };
 
   const handleLogout = () => {
     logout();
@@ -32,76 +48,81 @@ export function Header() {
         <div className="flex items-center gap-4 sm:gap-8 overflow-x-auto flex-1 justify-center px-4">
           <Link
             to="/"
-            className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
-              isActive("/")
-                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-            }`}
+            className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${isActive("/")
+              ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+              : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+              }`}
           >
-            Trasy
+            {t("header.routes")}
           </Link>
-          
+
           {isAuthenticated && user?.role === "USER" && (
             <Link
               to="/points"
-              className={`flex items-center gap-2 text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
-                isActive("/points")
-                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                  : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-              }`}
+              className={`flex items-center gap-2 text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${isActive("/points")
+                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                }`}
             >
               <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
-              Punkty
+              {t("header.points")}
             </Link>
           )}
 
           {isAuthenticated && (user?.role === "ADMIN" || user?.role === "SECRETARY") && (
             <Link
               to="/admin"
-              className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
-                isActive("/admin")
-                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                  : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-              }`}
+              className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${isActive("/admin")
+                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                }`}
             >
-              Panel Sekretariatu
+              {t("header.secretaryPanel")}
             </Link>
           )}
 
           {isAuthenticated && user?.role === "DRIVER" && (
             <Link
               to="/driver"
-              className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
-                isActive("/driver")
-                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                  : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-              }`}
+              className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${isActive("/driver")
+                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                }`}
             >
-              Panel Kierowcy
+              {t("header.driverPanel")}
             </Link>
           )}
 
           {isAuthenticated && (user?.role === "OWNER" || user?.role === "ADMIN") && (
             <Link
               to="/owner"
-              className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
-                isActive("/owner")
-                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                  : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-              }`}
+              className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${isActive("/owner")
+                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                }`}
             >
-              Panel Właściciela
+              {t("header.ownerPanel")}
             </Link>
           )}
         </div>
 
+
         {/* User Profile and Theme Toggle */}
         <div className="flex items-center gap-2 sm:gap-4">
+          {/* Language Toggle */}
+          <button
+            onClick={toggleLanguage}
+            className="p-2 rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors text-sm font-bold text-gray-700 dark:text-gray-300 w-9 flex items-center justify-center"
+            title={t("header.toggleLanguage")}
+          >
+            {lang}
+          </button>
+
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
             className="p-2 rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
-            title={`Przełącz na ${theme === "light" ? "tryb ciemny" : "tryb jasny"}`}
+            title={t("header.toggleTheme")}
           >
             {theme === "light" ? (
               <Moon className="w-5 h-5 text-gray-700" />
@@ -117,11 +138,11 @@ export function Header() {
                   {user?.role.charAt(0) || "U"}
                 </span>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={handleLogout}
-                title="Wyloguj się"
+                title={t("header.logout")}
                 className="text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
               >
                 <LogOut className="w-5 h-5" />
@@ -132,14 +153,14 @@ export function Header() {
               <Link to="/login">
                 <Button variant="ghost" className="hidden sm:flex items-center gap-2">
                   <UserIcon className="w-4 h-4" />
-                  Zaloguj
+                  {t("header.login")}
                 </Button>
                 <Button variant="ghost" size="icon" className="sm:hidden">
                   <UserIcon className="w-5 h-5" />
                 </Button>
               </Link>
               <Link to="/register" className="hidden sm:block">
-                <Button variant="default">Załóż konto</Button>
+                <Button variant="default">{t("header.register")}</Button>
               </Link>
             </div>
           )}

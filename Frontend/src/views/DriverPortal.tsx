@@ -21,6 +21,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useT } from "@/i18n";
 
 interface ApiDriver {
   id: number;
@@ -85,6 +86,8 @@ const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
 const toTimeLabel = (value?: string) => value?.slice(0, 5) ?? "—";
 
 export function DriverPortal() {
+  const t = useT();
+
   const [drivers, setDrivers] = useState<UiDriver[]>([]);
   const [schedules, setSchedules] = useState<UiDriverSchedule[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -99,7 +102,7 @@ export function DriverPortal() {
   const mapDriver = (driver: ApiDriver): UiDriver => {
     const name = driver.firstName && driver.lastName
       ? `${driver.firstName} ${driver.lastName}`.trim()
-      : `Kierowca ${driver.id}`;
+      : `${t("app.driver.driverLabel")} ${driver.id}`;
     return {
       id: driver.id.toString(),
       name,
@@ -142,7 +145,7 @@ export function DriverPortal() {
       const message =
         error instanceof Error
           ? error.message
-          : "Nie udało się pobrać danych kierowcy.";
+          : t("app.driver.error.fetchData");
       setErrorMessage(message);
     } finally {
     }
@@ -181,13 +184,13 @@ export function DriverPortal() {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "completed":
-        return "Ukończona";
+        return t("app.driver.status.completed");
       case "in-progress":
-        return "W trakcie";
+        return t("app.driver.status.inProgress");
       case "scheduled":
-        return "Zaplanowana";
+        return t("app.driver.status.scheduled");
       case "cancelled":
-        return "Anulowana";
+        return t("app.driver.status.cancelled");
       default:
         return status;
     }
@@ -200,10 +203,10 @@ export function DriverPortal() {
         <div className="bg-linear-to-r from-blue-600 to-blue-800 dark:from-blue-900 dark:to-blue-950 rounded-lg shadow-lg p-8 text-white">
           <div>
             <h1 className="text-4xl font-bold mb-2">
-              Witaj, {currentDriver ? currentDriver.name : "Kierowco"}!
+              {t("app.driver.welcome")}, {currentDriver ? currentDriver.name : t("app.driver.driverPlaceholder")}!
             </h1>
             <p className="text-blue-100">
-              Portal kierowcy - Zarządzaj swoją pracą
+              {t("app.driver.subtitle")}
             </p>
           </div>
         </div>
@@ -216,7 +219,7 @@ export function DriverPortal() {
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
                   <User className="w-5 h-5" />
-                  Moje dane
+                  {t("app.driver.myData")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -224,7 +227,7 @@ export function DriverPortal() {
                   <>
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold uppercase">
-                        Imię i nazwisko
+                        {t("app.driver.fullName")}
                       </p>
                       <p className="text-lg font-semibold text-gray-900 dark:text-white">
                         {currentDriver.name}
@@ -235,7 +238,7 @@ export function DriverPortal() {
                       <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       <div>
                         <p className="text-xs text-gray-600 dark:text-gray-400">
-                          Email
+                          {t("app.driver.email")}
                         </p>
                         <p className="font-semibold text-gray-900 dark:text-white break-all">
                           {currentDriver.email}
@@ -247,7 +250,7 @@ export function DriverPortal() {
                       <Phone className="w-5 h-5 text-green-600 dark:text-green-400" />
                       <div>
                         <p className="text-xs text-gray-600 dark:text-gray-400">
-                          Telefon
+                          {t("app.driver.phone")}
                         </p>
                         <p className="font-semibold text-gray-900 dark:text-white">
                           {currentDriver.phone}
@@ -257,7 +260,7 @@ export function DriverPortal() {
 
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold uppercase">
-                        Numer prawa jazdy
+                        {t("app.driver.licenseNumber")}
                       </p>
                       <p className="text-lg font-semibold text-gray-900 dark:text-white">
                         {currentDriver.licenseNumber}
@@ -266,19 +269,19 @@ export function DriverPortal() {
 
                     <div className="border-t dark:border-slate-700 pt-4">
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold uppercase mb-2">
-                        Doświadczenie
+                        {t("app.driver.experience")}
                       </p>
                       <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-                        {currentDriver.yearsOfExperience || "—"} lat
+                        {currentDriver.yearsOfExperience || "—"} {t("app.driver.years")}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Łącznie {currentDriver.totalHours || "—"} godzin pracy
+                        {t("app.driver.totalHours")} {currentDriver.totalHours || "—"} {t("app.driver.workHours")}
                       </p>
                     </div>
                   </>
                 ) : (
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Brak danych kierowcy do wyświetlenia
+                    {t("app.driver.noData")}
                   </div>
                 )}
               </CardContent>
@@ -289,26 +292,25 @@ export function DriverPortal() {
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
                   <TrendingUp className="w-5 h-5" />
-                  Dostępność
+                  {t("app.driver.availability")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="p-4 rounded-lg bg-gray-50 dark:bg-slate-700">
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    Obecny status
+                    {t("app.driver.currentStatus")}
                   </p>
                   <div className="flex items-center gap-2">
                     <div
-                      className={`w-3 h-3 rounded-full ${
-                        availability === "available"
-                          ? "bg-green-500"
-                          : "bg-red-500"
-                      }`}
+                      className={`w-3 h-3 rounded-full ${availability === "available"
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                        }`}
                     />
                     <p className="font-semibold text-gray-900 dark:text-white">
                       {availability === "available"
-                        ? "Dostępny"
-                        : "Niedostępny"}
+                        ? t("app.driver.available")
+                        : t("app.driver.unavailable")}
                     </p>
                   </div>
                 </div>
@@ -316,31 +318,28 @@ export function DriverPortal() {
                 <div className="space-y-2">
                   <Button
                     onClick={() => setAvailability("available")}
-                    className={`w-full py-2 rounded-lg font-semibold transition ${
-                      availability === "available"
-                        ? "bg-green-600 hover:bg-green-700 text-white"
-                        : "bg-gray-200 dark:bg-slate-600 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-500"
-                    }`}
+                    className={`w-full py-2 rounded-lg font-semibold transition ${availability === "available"
+                      ? "bg-green-600 hover:bg-green-700 text-white"
+                      : "bg-gray-200 dark:bg-slate-600 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-500"
+                      }`}
                   >
                     <CheckCircle className="w-4 h-4 mr-2 inline" />
-                    Dostępny
+                    {t("app.driver.available")}
                   </Button>
                   <Button
                     onClick={() => setAvailability("unavailable")}
-                    className={`w-full py-2 rounded-lg font-semibold transition ${
-                      availability === "unavailable"
-                        ? "bg-red-600 hover:bg-red-700 text-white"
-                        : "bg-gray-200 dark:bg-slate-600 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-500"
-                    }`}
+                    className={`w-full py-2 rounded-lg font-semibold transition ${availability === "unavailable"
+                      ? "bg-red-600 hover:bg-red-700 text-white"
+                      : "bg-gray-200 dark:bg-slate-600 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-500"
+                      }`}
                   >
                     <AlertCircle className="w-4 h-4 mr-2 inline" />
-                    Niedostępny
+                    {t("app.driver.unavailable")}
                   </Button>
                 </div>
 
                 <p className="text-xs text-gray-600 dark:text-gray-400 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
-                  ℹ️ Twoja dostępność informuje dyspozytora o możliwości
-                  przydzielenia Ci nowych tras.
+                  ℹ️ {t("app.driver.availabilityInfo")}
                 </p>
               </CardContent>
             </Card>
@@ -349,13 +348,13 @@ export function DriverPortal() {
             <Card className="bg-white dark:bg-slate-800 border dark:border-slate-700">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white">
-                  Statystyki
+                  {t("app.driver.statistics")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">
-                    Trasy dzisiaj
+                    {t("app.driver.routesToday")}
                   </span>
                   <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                     {todaysTrips.length}
@@ -363,7 +362,7 @@ export function DriverPortal() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">
-                    Ukończone
+                    {t("app.driver.completed")}
                   </span>
                   <span className="text-2xl font-bold text-green-600 dark:text-green-400">
                     {
@@ -374,7 +373,7 @@ export function DriverPortal() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">
-                    W trakcie
+                    {t("app.driver.inProgress")}
                   </span>
                   <span className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                     {
@@ -394,7 +393,7 @@ export function DriverPortal() {
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
-                  Wybierz datę
+                  {t("app.driver.chooseDate")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -412,7 +411,7 @@ export function DriverPortal() {
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
                   <MapPin className="w-5 h-5" />
-                  Trasy na {new Date(selectedDate).toLocaleDateString("pl-PL")}
+                  {t("app.driver.routesOn")} {new Date(selectedDate).toLocaleDateString("pl-PL")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -426,7 +425,7 @@ export function DriverPortal() {
                         <div className="flex items-start justify-between mb-3">
                           <div>
                             <p className="font-semibold text-gray-900 dark:text-white">
-                              Trasa {trip.routeId}
+                              {t("app.driver.route")} {trip.routeId}
                             </p>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
                               {trip.startTime} - {trip.endTime}
@@ -445,16 +444,16 @@ export function DriverPortal() {
                           {trip.status === "scheduled" && (
                             <>
                               <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2">
-                                Przyjmij
+                                {t("app.driver.accept")}
                               </Button>
                               <Button className="flex-1 bg-gray-300 dark:bg-slate-600 hover:bg-gray-400 dark:hover:bg-slate-500 text-gray-900 dark:text-white text-sm py-2">
-                                Odmów
+                                {t("app.driver.decline")}
                               </Button>
                             </>
                           )}
                           {trip.status === "in-progress" && (
                             <Button className="w-full bg-green-600 hover:bg-green-700 text-white text-sm py-2">
-                              Zakończ trasę
+                              {t("app.driver.finishRoute")}
                             </Button>
                           )}
                           {trip.status === "completed" && (
@@ -462,7 +461,7 @@ export function DriverPortal() {
                               disabled
                               className="w-full bg-green-200 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-sm py-2"
                             >
-                              Ukończono
+                              {t("app.driver.status.completed")}
                             </Button>
                           )}
                         </div>
@@ -473,7 +472,7 @@ export function DriverPortal() {
                   <div className="text-center py-8">
                     <AlertCircle className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
                     <p className="text-gray-600 dark:text-gray-400">
-                      Brak tras na wybrany dzień
+                      {t("app.driver.noRoutesOnDate")}
                     </p>
                   </div>
                 )}
@@ -490,7 +489,7 @@ export function DriverPortal() {
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
                   <Clock className="w-5 h-5" />
-                  Wszystkie zaplanowane trasy
+                  {t("app.driver.allScheduledRoutes")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -499,16 +498,16 @@ export function DriverPortal() {
                     <TableHeader>
                       <TableRow className="bg-gray-50 dark:bg-slate-700">
                         <TableHead className="text-gray-900 dark:text-gray-300">
-                          Data
+                          {t("app.driver.date")}
                         </TableHead>
                         <TableHead className="text-gray-900 dark:text-gray-300">
-                          Godziny
+                          {t("app.driver.hours")}
                         </TableHead>
                         <TableHead className="text-gray-900 dark:text-gray-300">
-                          Trasa
+                          {t("app.driver.routeLabel")}
                         </TableHead>
                         <TableHead className="text-gray-900 dark:text-gray-300">
-                          Status
+                          {t("app.driver.statusLabel")}
                         </TableHead>
                       </TableRow>
                     </TableHeader>
