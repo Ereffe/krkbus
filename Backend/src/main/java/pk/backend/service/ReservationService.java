@@ -60,7 +60,17 @@ public class ReservationService {
         Reservation savedReservation = reservationRepository.save(reservation);
 
         Set<Ticket> tickets = new HashSet<>();
-        int capacity = trip.getVehicle() != null ? trip.getVehicle().getCapacity() : 50;
+
+
+        //
+        Integer capacityObj = trip.getVehicle() != null
+                ? trip.getVehicle().getCapacity()
+                : null;
+
+        int capacity = capacityObj != null ? capacityObj : 50;
+        //
+
+
         List<Integer> availableSeatNumbers = IntStream.rangeClosed(1, capacity)
                 .filter(s -> !takenSeats.contains(s))
                 .boxed()
@@ -202,6 +212,17 @@ public class ReservationService {
         reservationDTO.setTripID(trip.getTripID());
         reservationDTO.setClientID(client.getUserID());
         reservationDTO.setSeatCount(request.getSeatCount());
+
+//        System.out.println("routeID = " + request.getRouteID());
+//        System.out.println("reservationDate = " + request.getReservationDate());
+//
+//        System.out.println("Trips found: " + byRoute.size());
+//
+//        byRoute.forEach(t ->
+//                System.out.println(
+//                        "Trip: " + t.getTripID() +
+//                                " departure=" + t.getDepartureTime()
+//                )
 
         return createReservation(reservationDTO);
     }

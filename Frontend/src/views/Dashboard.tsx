@@ -1,4 +1,4 @@
-import { Layout } from "@/components/Layout";
+ import { Layout } from "@/components/Layout";
 import { BusRouteCard } from "@/components/BusRouteCard";
 import type { BusRoute, BusStop } from "@/types/bus";
 import { Search } from "lucide-react";
