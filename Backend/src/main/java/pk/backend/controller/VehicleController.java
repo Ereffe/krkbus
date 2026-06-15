@@ -1,28 +1,29 @@
 package pk.backend.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pk.backend.entity.vehicle.Vehicle; // Twój pakiet Encji
-import pk.backend.repository.VehicleRepository; // Twój pakiet Repozytorium
+import pk.backend.dto.VehicleResponseDTO;
+import pk.backend.entity.vehicle.Vehicle;
+import pk.backend.repository.VehicleRepository;
+import pk.backend.service.VehicleService;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/vehicles")
-@CrossOrigin(origins = "*") // Zezwala na dostęp z Frontendu (localhost:5173)
+@RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class VehicleController {
 
-    @Autowired
-    private VehicleRepository vehicleRepository;
+    private final VehicleService vehicleService;
+    private final VehicleRepository vehicleRepository;
 
-    // Obsługa GET (pobieranie listy do tabeli i dropdownów)
     @GetMapping
-    public ResponseEntity<List<Vehicle>> getAllVehicles() {
-        return ResponseEntity.ok(vehicleRepository.findAll());
+    public ResponseEntity<List<VehicleResponseDTO>> getAllVehicles() {
+        return ResponseEntity.ok(vehicleService.getAllVehicles());
     }
 
-    // Obsługa POST (dodawanie pojazdu z okienka dialogowego)
     @PostMapping
     public ResponseEntity<Vehicle> createVehicle(@RequestBody Vehicle vehicle) {
         Vehicle savedVehicle = vehicleRepository.save(vehicle);

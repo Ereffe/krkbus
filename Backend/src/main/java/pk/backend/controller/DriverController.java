@@ -2,11 +2,12 @@ package pk.backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import pk.backend.entity.user.Employee;
 import pk.backend.service.EmployeeService;
 import pk.backend.dto.EmployeeDTO;
+import pk.backend.dto.DriverResponseDTO;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,23 +18,38 @@ public class DriverController {
     private static final String POSITION = "Driver";
 
     @GetMapping
-    public List<Employee> getAllDrivers() {
-        return employeeService.getAllEmployeesByPosition(POSITION);
+    public List<DriverResponseDTO> getAllDrivers() {
+        return employeeService.getAllEmployeesByPosition(POSITION).stream()
+                .map(e -> {
+                    String firstName = e.getProfile() != null ? e.getProfile().getFirstName() : null;
+                    String lastName = e.getProfile() != null ? e.getProfile().getLastName() : null;
+                    return new DriverResponseDTO(e.getUserID(), firstName, lastName, e.getPosition());
+                })
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{driverId}")
-    public Employee getDriverById(@PathVariable Integer driverId) {
-        return employeeService.getEmployeeByIdAndPosition(driverId, POSITION);
+    public DriverResponseDTO getDriverById(@PathVariable Integer driverId) {
+        var e = employeeService.getEmployeeByIdAndPosition(driverId, POSITION);
+        String firstName = e.getProfile() != null ? e.getProfile().getFirstName() : null;
+        String lastName = e.getProfile() != null ? e.getProfile().getLastName() : null;
+        return new DriverResponseDTO(e.getUserID(), firstName, lastName, e.getPosition());
     }
 
     @PostMapping
-    public Employee createDriver(@RequestBody EmployeeDTO employeeDTO) {
-        return employeeService.createEmployee(employeeDTO, POSITION);
+    public DriverResponseDTO createDriver(@RequestBody EmployeeDTO employeeDTO) {
+        var e = employeeService.createEmployee(employeeDTO, POSITION);
+        String firstName = e.getProfile() != null ? e.getProfile().getFirstName() : null;
+        String lastName = e.getProfile() != null ? e.getProfile().getLastName() : null;
+        return new DriverResponseDTO(e.getUserID(), firstName, lastName, e.getPosition());
     }
 
     @PutMapping("/{driverId}")
-    public Employee updateDriver(@PathVariable Integer driverId, @RequestBody EmployeeDTO employeeDTO) {
-        return employeeService.updateEmployee(driverId, employeeDTO, POSITION);
+    public DriverResponseDTO updateDriver(@PathVariable Integer driverId, @RequestBody EmployeeDTO employeeDTO) {
+        var e = employeeService.updateEmployee(driverId, employeeDTO, POSITION);
+        String firstName = e.getProfile() != null ? e.getProfile().getFirstName() : null;
+        String lastName = e.getProfile() != null ? e.getProfile().getLastName() : null;
+        return new DriverResponseDTO(e.getUserID(), firstName, lastName, e.getPosition());
     }
 
     @DeleteMapping("/{driverId}")

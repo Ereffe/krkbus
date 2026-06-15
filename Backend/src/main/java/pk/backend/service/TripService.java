@@ -3,8 +3,10 @@ package pk.backend.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pk.backend.entity.reservation.Reservation;
 import pk.backend.entity.trip.Trip;
 import pk.backend.entity.trip.Route;
+import pk.backend.entity.user.Client;
 import pk.backend.entity.user.Employee;
 import pk.backend.entity.vehicle.Vehicle;
 import pk.backend.repository.TripRepository;
@@ -12,9 +14,15 @@ import pk.backend.repository.RouteRepository;
 import pk.backend.repository.EmployeeRepository;
 import pk.backend.repository.VehicleRepository;
 import pk.backend.dto.TripDTO;
+import pk.backend.dto.TripResponseDTO;
+import pk.backend.dto.ReservationResponseDTO;
+import pk.backend.dto.ClientDTO;
+import pk.backend.entity.reservation.Ticket;
 import jakarta.persistence.EntityNotFoundException;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -26,29 +34,32 @@ public class TripService {
     private final VehicleRepository vehicleRepository;
 
     @Transactional(readOnly = true)
-    public List<Trip> getAllTrips() {
-        return tripRepository.findAll();
+    public List<TripResponseDTO> getAllTrips() {
+        return tripRepository.findAll().stream()
+                .map(this::mapEntityToResponseDto)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public Trip getTripById(Integer id) {
-        return tripRepository.findById(id)
+    public TripResponseDTO getTripById(Integer id) {
+        Trip trip = tripRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Trip with ID " + id + " not found"));
+        return mapEntityToResponseDto(trip);
     }
 
     @Transactional
-    public Trip createTrip(TripDTO tripDTO) {
+    public TripResponseDTO createTrip(TripDTO tripDTO) {
         Trip trip = new Trip();
         mapDtoToEntity(tripDTO, trip);
-        return tripRepository.save(trip);
+        return mapEntityToResponseDto(tripRepository.save(trip));
     }
 
     @Transactional
-    public Trip updateTrip(Integer id, TripDTO tripDTO) {
+    public TripResponseDTO updateTrip(Integer id, TripDTO tripDTO) {
         Trip trip = tripRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Trip with ID " + id + " not found"));
         mapDtoToEntity(tripDTO, trip);
-        return tripRepository.save(trip);
+        return mapEntityToResponseDto(tripRepository.save(trip));
     }
 
     @Transactional
@@ -90,5 +101,58 @@ public class TripService {
         } else {
             trip.setRoute(null);
         }
+    }
+
+    private TripResponseDTO mapEntityToResponseDto(Trip trip) {
+        TripResponseDTO dto = new TripResponseDTO();
+        dto.setTripID(trip.getTripID());
+        dto.setDepartureTime(trip.getDepartureTime());
+        dto.setArrivalTime(trip.getArrivalTime());
+        dto.setBasePrice(trip.getBasePrice());
+        dto.setAvailableSeats(trip.getAvailableSeats());
+
+        if (trip.getVehicle() != null) {
+            dto.setVehicleId(trip.getVehicle().getVehicleID());
+        }
+        if (trip.getDriver() != null) {
+            dto.setDriverId(trip.getDriver().getUserID());
+        }
+        if (trip.getRoute() != null) {
+            dto.setRouteId(trip.getRoute().getRouteID());
+        }
+
+        if (trip.getReservations() != null) {
+            Set<ReservationResponseDTO> reservationDTOs = trip.getReservations().stream()
+                    .map(this::mapReservationToResponseDto)
+                    .collect(Collectors.toSet());
+            dto.setReservations(reservationDTOs);
+        }
+
+        return dto;
+    }
+
+    private ReservationResponseDTO mapReservationToResponseDto(Reservation reservation) {
+        ReservationResponseDTO dto = new ReservationResponseDTO();
+        dto.setId(reservation.getReservationID());
+        dto.setStatus(reservation.getStatus());
+
+        if (reservation.getClient() != null) {
+            Client client = reservation.getClient();
+            ClientDTO clientDTO = new ClientDTO();
+            clientDTO.setId(client.getUserID());
+            if (client.getProfile() != null) {
+                clientDTO.setFirstName(client.getProfile().getFirstName());
+                clientDTO.setLastName(client.getProfile().getLastName());
+            }
+            dto.setClient(clientDTO);
+        }
+
+        if (reservation.getTickets() != null) {
+            dto.setTicketIds(reservation.getTickets().stream()
+                    .map(Ticket::getTicketID)
+                    .collect(Collectors.toSet()));
+        }
+
+        return dto;
     }
 }
