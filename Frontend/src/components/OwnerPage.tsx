@@ -4,6 +4,7 @@ import { SystemBlock } from "./SystemBlock";
 import { SecretaryScheduleBlock } from "./SecretaryScheduleBlock";
 import { PricingBlock } from "./PricingBlock";
 import { RoutesManagementBlock } from "./RoutesManagementBlock";
+import { TripsManagementBlock } from "./TripsManagementBlock";
 import { Layout } from "./Layout";
 
 export function OwnerPage() {
@@ -31,10 +32,16 @@ export function OwnerPage() {
           <RoutesManagementBlock />
         </section>
 
+        {/* Ustaw Trips */}
+        <section>
+          <TripsManagementBlock />
+        </section>
+
         {/* Ustaw Ceny */}
         <section>
           <PricingBlock />
         </section>
+
 
         {/* Ustaw Nagrody */}
         <section>
