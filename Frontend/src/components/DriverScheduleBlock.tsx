@@ -19,18 +19,11 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface ApiDriver {
-  employeeNumber: number | null;
-  employeeId?: number | null;
+  id: number;
+  firstName: string | null;
+  lastName: string | null;
   position: string;
-  scheduleEntries?: any[];
-  trips?: any[];
-  profile: {
-    firstName?: string;
-    lastName?: string;
-  };
 }
-
-
 
 interface ApiTrip {
   tripID: number;
@@ -212,20 +205,14 @@ export function DriverScheduleBlock() {
               </TableHeader>
               <TableBody>
                 {drivers.map((driver) => {
-                  const firstName = driver.profile?.firstName;
-                  const lastName = driver.profile?.lastName;
-
                   const name =
-                    firstName && lastName
-                      ? `${firstName} ${lastName}`
-                      : driver.employeeNumber != null
-                        ? `Kierowca ${driver.employeeNumber}`
-                        : `Kierowca —`;
+                    driver.firstName && driver.lastName
+                      ? `${driver.firstName} ${driver.lastName}`
+                      : `Kierowca ${driver.id}`;
 
                   return (
                     <TableRow
-                      key={String(driver.employeeNumber ?? "")}
-
+                      key={driver.id}
                       className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition"
                     >
                       <TableCell className="font-semibold text-gray-900 dark:text-white py-4">
@@ -233,8 +220,7 @@ export function DriverScheduleBlock() {
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-400 py-4">
                         {(() => {
-                          const driverIdStr = String(driver.employeeNumber ?? "");
-
+                          const driverIdStr = String(driver.id);
                           const driverSchedules = schedulesByDriver.get(driverIdStr) ?? [];
                           return driverSchedules.length > 0
                             ? driverSchedules
@@ -250,7 +236,7 @@ export function DriverScheduleBlock() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => openDialog(String(driver.employeeNumber ?? ""))}
+                          onClick={() => openDialog(String(driver.id))}
                           className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-300"
                         >
                           Dodaj zmianę
