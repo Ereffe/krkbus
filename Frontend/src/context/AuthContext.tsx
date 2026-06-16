@@ -4,7 +4,7 @@ import type { User } from "@/types/auth";
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (token: string, role: string) => void;
+  login: (token: string, role: string, id: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -20,24 +20,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedRole = localStorage.getItem("role");
+    const storedId = localStorage.getItem("userId");
 
     if (storedToken && storedRole) {
       setToken(storedToken);
-      setUser({ role: storedRole });
+      setUser({ role: storedRole, id: storedId || "" });
     }
     setIsLoading(false);
   }, []);
 
-  const login = (newToken: string, role: string) => {
+  const login = (newToken: string, role: string, id: string) => {
     localStorage.setItem("token", newToken);
     localStorage.setItem("role", role);
+    localStorage.setItem("userId", id);
     setToken(newToken);
-    setUser({ role });
+
+    setUser({ role, id });
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
+    localStorage.removeItem("userId");
     setToken(null);
     setUser(null);
   };

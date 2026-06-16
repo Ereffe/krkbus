@@ -101,6 +101,7 @@ public class AuthController {
         
         var jwtToken = jwtService.generateToken(userDetails);
         
-        return ResponseEntity.ok(new AuthResponse(jwtToken, user.getRole()));
+        return ResponseEntity.ok(new AuthResponse(jwtToken, user.getRole(), user.getUserID()));
     }
 }
+

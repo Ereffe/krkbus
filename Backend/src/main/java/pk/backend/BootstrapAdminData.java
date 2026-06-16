@@ -37,8 +37,8 @@ public class BootstrapAdminData {
             }
 
             UserProfile profile = new UserProfile();
-            profile.setFirstName("Admin");
-            profile.setLastName("Root");
+            profile.setFirstName("Jan");
+            profile.setLastName("Kowalski");
             profile.setDateOfBirth(LocalDate.of(1990, 1, 1));
             profile.setEmail("admin@example.com");
             profile.setPhone("+48123123123");

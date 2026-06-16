@@ -550,6 +550,16 @@
         "map": {
             "selectRoute": "Select a route",
             "seeRouteMap": "to see the route map"
+        },
+        "info": {
+            "title": "About company",
+            "companyName": "Transport company KKBus sp z.o.o",
+            "ownerLabel": "Owner",
+            "owner": "Jan Kowalski",
+            "addressLabel": "Address",
+            "address": "ul. Jana Pawła II 37, 31-864 Kraków",
+            "phoneFaxLabel": "Phone/Fax",
+            "phoneFax": "(070) 012-34-56, (070)-011-22-33"
         }
     }
 }

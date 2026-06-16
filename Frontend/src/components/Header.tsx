@@ -7,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 
 export function Header() {
-
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
@@ -48,64 +47,82 @@ export function Header() {
         <div className="flex items-center gap-4 sm:gap-8 overflow-x-auto flex-1 justify-center px-4">
           <Link
             to="/"
-            className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${isActive("/")
-              ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-              : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-              }`}
+            className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
+              isActive("/")
+                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+            }`}
           >
             {t("header.routes")}
+          </Link>
+
+          <Link
+            to="/info"
+            className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
+              isActive("/info")
+                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+            }`}
+          >
+            {t("header.info")}
           </Link>
 
           {isAuthenticated && user?.role === "USER" && (
             <Link
               to="/points"
-              className={`flex items-center gap-2 text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${isActive("/points")
-                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-                }`}
+              className={`flex items-center gap-2 text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
+                isActive("/points")
+                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                  : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+              }`}
             >
               <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
               {t("header.points")}
             </Link>
           )}
 
-          {isAuthenticated && (user?.role === "ADMIN" || user?.role === "SECRETARY") && (
-            <Link
-              to="/admin"
-              className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${isActive("/admin")
-                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+          {isAuthenticated &&
+            (user?.role === "ADMIN" || user?.role === "SECRETARY") && (
+              <Link
+                to="/admin"
+                className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
+                  isActive("/admin")
+                    ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                    : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
                 }`}
-            >
-              {t("header.secretaryPanel")}
-            </Link>
-          )}
+              >
+                {t("header.secretaryPanel")}
+              </Link>
+            )}
 
-          {isAuthenticated && user?.role === "DRIVER" && (
-            <Link
-              to="/driver"
-              className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${isActive("/driver")
-                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+          {isAuthenticated &&
+            (user?.role === "DRIVER" || user?.role === "ADMIN") && (
+              <Link
+                to="/driver"
+                className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
+                  isActive("/driver")
+                    ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                    : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
                 }`}
-            >
-              {t("header.driverPanel")}
-            </Link>
-          )}
+              >
+                {t("header.driverPanel")}
+              </Link>
+            )}
 
-          {isAuthenticated && (user?.role === "OWNER" || user?.role === "ADMIN") && (
-            <Link
-              to="/owner"
-              className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${isActive("/owner")
-                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+          {isAuthenticated &&
+            (user?.role === "OWNER" || user?.role === "ADMIN") && (
+              <Link
+                to="/owner"
+                className={`text-base sm:text-lg font-medium transition-colors whitespace-nowrap ${
+                  isActive("/owner")
+                    ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                    : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
                 }`}
-            >
-              {t("header.ownerPanel")}
-            </Link>
-          )}
+              >
+                {t("header.ownerPanel")}
+              </Link>
+            )}
         </div>
-
 
         {/* User Profile and Theme Toggle */}
         <div className="flex items-center gap-2 sm:gap-4">
@@ -151,7 +168,10 @@ export function Header() {
           ) : (
             <div className="flex items-center gap-2">
               <Link to="/login">
-                <Button variant="ghost" className="hidden sm:flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  className="hidden sm:flex items-center gap-2"
+                >
                   <UserIcon className="w-4 h-4" />
                   {t("header.login")}
                 </Button>

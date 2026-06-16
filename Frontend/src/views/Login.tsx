@@ -24,7 +24,12 @@ export function Login() {
 
     try {
       const response = await authApi.login(loginForm);
-      login(response.token, response.role);
+      // Backend zwraca token/role + userId (PK użytkownika), więc możemy dopasować kierowcę po id.
+      login(
+        response.token,
+        response.role,
+        response.userId?.toString() ?? loginForm.login.toString(),
+      );
 
       // Redirect based on role
       switch (response.role) {
@@ -66,7 +71,6 @@ export function Login() {
             {t("app.login.createAccount")}
           </Link>
         </p>
-
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -101,7 +105,6 @@ export function Login() {
                   className="pl-10"
                   placeholder={t("app.login.loginLabel")}
                 />
-
               </div>
             </div>
 
@@ -111,7 +114,6 @@ export function Login() {
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 {t("app.login.passwordLabel")}
-
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -137,7 +139,9 @@ export function Login() {
                 className="w-full flex justify-center"
                 disabled={isLoading}
               >
-                {isLoading ? t("app.login.loggingIn") : t("app.login.submitButton")}
+                {isLoading
+                  ? t("app.login.loggingIn")
+                  : t("app.login.submitButton")}
               </Button>
             </div>
           </form>

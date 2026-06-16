@@ -21,10 +21,13 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { useT } from "@/i18n";
 
 interface ApiDriver {
-  id: number;
+  id?: number;
+  userID?: number;
+  employeeNumber?: number;
   firstName: string | null;
   lastName: string | null;
   position: string;
@@ -63,10 +66,12 @@ interface UiDriverSchedule {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 const fetchJson = async <T,>(url: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem("token");
   const response = await fetch(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers ?? {}),
     },
   });
@@ -87,6 +92,7 @@ const toTimeLabel = (value?: string) => value?.slice(0, 5) ?? "—";
 
 export function DriverPortal() {
   const t = useT();
+  const { user } = useAuth();
 
   const [drivers, setDrivers] = useState<UiDriver[]>([]);
   const [schedules, setSchedules] = useState<UiDriverSchedule[]>([]);
@@ -100,11 +106,19 @@ export function DriverPortal() {
   );
 
   const mapDriver = (driver: ApiDriver): UiDriver => {
-    const name = driver.firstName && driver.lastName
-      ? `${driver.firstName} ${driver.lastName}`.trim()
-      : `${t("app.driver.driverLabel")} ${driver.id}`;
+    const driverId = (
+      driver.id ||
+      driver.userID ||
+      driver.employeeNumber ||
+      0
+    ).toString();
+    const name =
+      driver.firstName && driver.lastName
+        ? `${driver.firstName} ${driver.lastName}`.trim()
+        : `${t("app.driver.driverLabel")} ${driverId}`;
+
     return {
-      id: driver.id.toString(),
+      id: driverId,
       name,
       email: "—",
       phone: "—",
@@ -116,9 +130,7 @@ export function DriverPortal() {
 
   const mapSchedule = (entry: ApiScheduleEntry): UiDriverSchedule => {
     const driverId =
-      entry.employee?.userID?.toString() ??
-      entry.employeeId?.toString() ??
-      "0";
+      entry.employee?.userID?.toString() ?? entry.employeeId?.toString() ?? "0";
     const routeId =
       entry.trip?.route?.routeID?.toString() ?? entry.tripId?.toString() ?? "—";
 
@@ -155,7 +167,21 @@ export function DriverPortal() {
     loadData();
   }, [loadData]);
 
-  const currentDriver = drivers[0];
+  const currentDriver = useMemo(() => {
+    if (!user?.id) return null;
+
+    const userId = Number(user.id).toString();
+
+    // Backend: /api/auth/login zwraca userID (PK User/Employee).
+    // /api/drivers zwraca DriverResponseDTO(e.getUserID(), ...)
+    // Dlatego kierowcę dopasowujemy po tym samym userID.
+    const byId = drivers.find((d) => d.id === userId);
+    if (byId) return byId;
+
+    // Jeśli nie ma dopasowania, nie pokazujemy losowego kierowcy,
+    // bo to psuje filtrowanie tripów.
+    return null;
+  }, [drivers, user]);
   const driverSchedules = useMemo(
     () =>
       currentDriver
@@ -203,11 +229,13 @@ export function DriverPortal() {
         <div className="bg-linear-to-r from-blue-600 to-blue-800 dark:from-blue-900 dark:to-blue-950 rounded-lg shadow-lg p-8 text-white">
           <div>
             <h1 className="text-4xl font-bold mb-2">
-              {t("app.driver.welcome")}, {currentDriver ? currentDriver.name : t("app.driver.driverPlaceholder")}!
+              {t("app.driver.welcome")},{" "}
+              {currentDriver
+                ? currentDriver.name
+                : t("app.driver.driverPlaceholder")}
+              !
             </h1>
-            <p className="text-blue-100">
-              {t("app.driver.subtitle")}
-            </p>
+            <p className="text-blue-100">{t("app.driver.subtitle")}</p>
           </div>
         </div>
 
@@ -272,10 +300,13 @@ export function DriverPortal() {
                         {t("app.driver.experience")}
                       </p>
                       <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-                        {currentDriver.yearsOfExperience || "—"} {t("app.driver.years")}
+                        {currentDriver.yearsOfExperience || "—"}{" "}
+                        {t("app.driver.years")}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {t("app.driver.totalHours")} {currentDriver.totalHours || "—"} {t("app.driver.workHours")}
+                        {t("app.driver.totalHours")}{" "}
+                        {currentDriver.totalHours || "—"}{" "}
+                        {t("app.driver.workHours")}
                       </p>
                     </div>
                   </>
@@ -302,10 +333,11 @@ export function DriverPortal() {
                   </p>
                   <div className="flex items-center gap-2">
                     <div
-                      className={`w-3 h-3 rounded-full ${availability === "available"
-                        ? "bg-green-500"
-                        : "bg-red-500"
-                        }`}
+                      className={`w-3 h-3 rounded-full ${
+                        availability === "available"
+                          ? "bg-green-500"
+                          : "bg-red-500"
+                      }`}
                     />
                     <p className="font-semibold text-gray-900 dark:text-white">
                       {availability === "available"
@@ -318,20 +350,22 @@ export function DriverPortal() {
                 <div className="space-y-2">
                   <Button
                     onClick={() => setAvailability("available")}
-                    className={`w-full py-2 rounded-lg font-semibold transition ${availability === "available"
-                      ? "bg-green-600 hover:bg-green-700 text-white"
-                      : "bg-gray-200 dark:bg-slate-600 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-500"
-                      }`}
+                    className={`w-full py-2 rounded-lg font-semibold transition ${
+                      availability === "available"
+                        ? "bg-green-600 hover:bg-green-700 text-white"
+                        : "bg-gray-200 dark:bg-slate-600 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-500"
+                    }`}
                   >
                     <CheckCircle className="w-4 h-4 mr-2 inline" />
                     {t("app.driver.available")}
                   </Button>
                   <Button
                     onClick={() => setAvailability("unavailable")}
-                    className={`w-full py-2 rounded-lg font-semibold transition ${availability === "unavailable"
-                      ? "bg-red-600 hover:bg-red-700 text-white"
-                      : "bg-gray-200 dark:bg-slate-600 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-500"
-                      }`}
+                    className={`w-full py-2 rounded-lg font-semibold transition ${
+                      availability === "unavailable"
+                        ? "bg-red-600 hover:bg-red-700 text-white"
+                        : "bg-gray-200 dark:bg-slate-600 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-500"
+                    }`}
                   >
                     <AlertCircle className="w-4 h-4 mr-2 inline" />
                     {t("app.driver.unavailable")}
@@ -411,7 +445,8 @@ export function DriverPortal() {
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
                   <MapPin className="w-5 h-5" />
-                  {t("app.driver.routesOn")} {new Date(selectedDate).toLocaleDateString("pl-PL")}
+                  {t("app.driver.routesOn")}{" "}
+                  {new Date(selectedDate).toLocaleDateString("pl-PL")}
                 </CardTitle>
               </CardHeader>
               <CardContent>

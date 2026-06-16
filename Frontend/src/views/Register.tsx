@@ -40,7 +40,17 @@ export function Register() {
 
   const handleProceed = () => {
     if (successData) {
-      login(successData.token, successData.role);
+      login(
+        successData.token,
+        successData.role,
+        (
+          successData.id ||
+          successData.userId ||
+          successData.userID ||
+          successData.employeeNumber ||
+          ""
+        ).toString(),
+      );
       navigate("/");
     }
   };
@@ -62,20 +72,35 @@ export function Register() {
             </div>
 
             <Alert className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 mb-6">
-              <AlertTitle className="text-green-800 dark:text-green-300">{t("app.register.successAlertTitle")}</AlertTitle>
+              <AlertTitle className="text-green-800 dark:text-green-300">
+                {t("app.register.successAlertTitle")}
+              </AlertTitle>
               <AlertDescription className="text-green-700 dark:text-green-400 mt-2">
                 <div className="space-y-2 font-mono bg-white dark:bg-slate-900 p-3 rounded border border-green-100 dark:border-green-800">
-                  <p><strong>{t("app.register.loginLabel")}:</strong> {successData.login}</p>
-                  <p><strong>{t("app.register.passwordLabel")}:</strong> {successData.password}</p>
-                  <p><strong>{t("app.register.clientNumberLabel")}:</strong> {successData.clientNumber}</p>
+                  <p>
+                    <strong>{t("app.register.loginLabel")}:</strong>{" "}
+                    {successData.login}
+                  </p>
+                  <p>
+                    <strong>{t("app.register.passwordLabel")}:</strong>{" "}
+                    {successData.password}
+                  </p>
+                  <p>
+                    <strong>{t("app.register.clientNumberLabel")}:</strong>{" "}
+                    {successData.clientNumber}
+                  </p>
                 </div>
                 <p className="mt-4 text-sm font-sans">
-                  {t("app.register.activationEmailSent")} (<strong>{form.email}</strong>).
+                  {t("app.register.activationEmailSent")} (
+                  <strong>{form.email}</strong>).
                 </p>
               </AlertDescription>
             </Alert>
 
-            <Button onClick={handleProceed} className="w-full flex justify-center bg-green-600 hover:bg-green-700">
+            <Button
+              onClick={handleProceed}
+              className="w-full flex justify-center bg-green-600 hover:bg-green-700"
+            >
               {t("app.register.goToAccount")}
             </Button>
           </div>
@@ -215,7 +240,9 @@ export function Register() {
                 className="w-full flex justify-center"
                 disabled={isLoading}
               >
-                {isLoading ? t("app.register.registering") : t("app.register.submitButton")}
+                {isLoading
+                  ? t("app.register.registering")
+                  : t("app.register.submitButton")}
               </Button>
             </div>
           </form>

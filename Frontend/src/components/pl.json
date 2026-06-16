@@ -9,6 +9,7 @@
         "logout": "Wyloguj się",
         "login": "Zaloguj",
         "register": "Załóż konto",
+        "info": "Informacje",
         "toggleLanguage": "Zmień język"
     },
     "common": {
@@ -550,6 +551,16 @@
         "map": {
             "selectRoute": "Wybierz trasę",
             "seeRouteMap": "aby zobaczyć mapę trasy"
+        },
+        "info": {
+            "title": "O firmie",
+            "companyName": "Firma transportowa KKBus sp z.o.o",
+            "ownerLabel": "Właściciel",
+            "owner": "Jan Kowalski",
+            "addressLabel": "Adres",
+            "address": "ul. Jana Pawła II 37, 31-864 Kraków",
+            "phoneFaxLabel": "Telefon/fax",
+            "phoneFax": "(070) 012-34-56, (070)-011-22-33"
         }
     }
 }
